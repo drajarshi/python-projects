@@ -1,0 +1,81 @@
+1.Ensure that the IBM cloud CLI is installed.
+# bx
+
+This command should return a help menu.
+If it does not, install the latest version from:
+https://github.com/IBM-Cloud/ibm-cloud-cli-release/releases/
+
+2. Once bx is installed, install the vpc-infrastructure plugin and set target.
+E.g. 
+# bx plugin install vpc-infrastructure
+Looking up 'vpc-infrastructure' from repository 'IBM Cloud'...
+Plug-in 'vpc-infrastructure/infrastructure-service 0.5.0' found in repository 'IBM Cloud'
+Attempting to download the binary file...
+ 15.43 MiB / 15.43 MiB [===================================================================================================] 100.00% 5s
+16183680 bytes downloaded
+Installing binary...
+OK
+Plug-in 'vpc-infrastructure 0.5.0' was successfully installed into /root/.bluemix/plugins/vpc-infrastructure. Use 'bx plugin show vpc-infrastructure' to show its details.
+# bx is target --gen 1
+OK
+Target Generation: 1
+
+At this stage, ensure that your id has been added to a group that has sufficient privileges to create VPC, VPN, subnet, VSI as well as VPN connection.
+
+3. Login with --sso
+# bx login --sso
+API endpoint: https://cloud.ibm.com
+
+Get One Time Code from https://identity-2.eu-central.iam.cloud.ibm.com/identity/passcode to proceed.
+Open the URL in the default browser? [Y/n] > n
+One Time Code >
+Authenticating...
+OK
+
+Select an account:
+1. ABC's Account (a28ea1783ccdb658f8e4f0e7)
+2. net 1 (d4f54ca89aff65) <-> 12345678
+Enter a number> 2
+Targeted account net 2 (d4f54ca89aff65) <-> 12345678
+Select a region (or press enter to skip):
+1. au-syd
+2. jp-osa
+3. jp-tok
+4. eu-de
+5. eu-gb
+6. us-south
+7. us-east
+Enter a number> 4
+Targeted region eu-de
+
+API endpoint:      https://cloud.ibm.com
+Region:            eu-de
+User:              abc@def.com
+Account:           net 1 (d4f54ca89aff65) <-> 12345678
+Resource group:    No resource group targeted, use 'bx target -g RESOURCE_GROUP'
+CF API endpoint:
+Org:
+Space:
+
+Tip: If you are managing Cloud Foundry applications and services
+- Use 'bx target --cf' to target Cloud Foundry org/space interactively, or use 'bx target --cf-api ENDPOINT -o ORG -s SPACE' to target the org/space.
+- Use 'bx cf' if you want to run the Cloud Foundry CLI with current  Cloud CLI context.
+
+4. Once the login works correctly, ensure that the ike and ipsec policies have been set as well.
+# bx is ipsecs
+Listing IPsec policies under account net 2 as user abc@def.com...
+ID                                     Name                 Authentication algorithm   Encryption algorithm   Key lifetime(seconds)   Perfect forward secrecy   Resource group                     VPN connections   Encapsulation mode   Transform protocol
+b70b8f-dc2-40a3-961b-1500d196efd   aes256-md5-dh14      md5                        aes256                 3600                    group_14                  ef6109192b604ba8bf5c7e231f4585c1   -                 tunnel               esp
+0bed68a-166-42b1-8b0d-f88d9329da1   aes256-sha256-dh14   sha256                     aes256                 3600                    group_14                  ef6109192b604ba8bf5c7e231f4585c1   -                 tunnel               esp
+edf901-4d7-4063-a293-5891bb5cf2f   aes256-sha1-dh14     sha1                       aes256                 3600                    group_14                  ef6109192b604ba8bf5c7e231f4585c1   -                 tunnel               esp
+
+#bx is ikes
+Listing IKE policies under account net 2 as user abc@def.com...
+ID                                     Name                 Authentication algorithm   Diffie-Hellman group   Encryption algorithm   IKE protocol version   Key lifetime(seconds)   Resource group                     VPN connections   IKE negotiation mode
+23134913-30fb-4326-8a70-b5806e94fe0d   aes256-md5-dh14      md5                        14                     aes256                 2                      28800                   ef6109192b604ba8bf5c7e231f4585c1   -                 main
+2761a9b1-7b83-4498-aace-260d664222e5   aes256-sha1-dh14     sha1                       14                     aes256                 2                      28800                   ef6109192b604ba8bf5c7e231f4585c1   -                 main
+c0c6664b-982e-4b21-b073-eb143a31c18e   aes256-sha256-dh14   sha256                     14                     aes256                 2                      28800                   ef6109192b604ba8bf5c7e231f4585c1   -                 main
+
+If no policies are found, then create new policies using the IBM cloud console (https://cloud.ibm.com/vpc/network/ikepolicies)
+
+Now, proceed with running the script iperf3_test.py.
