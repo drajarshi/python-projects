@@ -61,7 +61,42 @@ class vpn_connection:
 		ipsecs_outf.close();
 		self.get_policy_info(ipsec,self.ipsec_policies);
 
+	def get_current_policy(self):
+		outf = open('current_policy.json','w');
+		ret = call(['bx','is','vpn-cn',self.gateway_id,self.id,'--json'],stdout=outf,stderr=outf);
+		if (ret != 0):
+			print("Failed to get current policy. Exiting");
+			exit(-1);
+
+		outf.close();
+		inf = open('current_policy.json','r');
+		arr = json.load(inf);
+
+		# If current policies are set to Auto(IKEv2)/ Auto
+		# the ike_policy and ipsec_policy nodes are not seen,
+		# return None so that we continue to set a new policy.
+
+		if "ike_policy" in arr:
+			current_ike_policy = arr["ike_policy"]["id"];
+		else:
+			current_ike_policy = None;
+		if "ipsec_policy" in arr:
+			current_ipsec_policy = arr["ipsec_policy"]["id"];
+		else:
+			current_ipsec_policy = None;
+
+		return current_ike_policy,current_ipsec_policy;
+
 	def set_policy(self,ike_policy,ipsec_policy):
+		# First check the currently set ike_policy and ipsec_policy.
+		# If they match what we are trying to set, return.
+		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
+		print('current policy: IKE: ', curr_ike_policy_id, ' IPSec: ', curr_ipsec_policy_id);
+
+		if ((curr_ike_policy_id == ike_policy["id"]) and (curr_ipsec_policy_id == ipsec_policy["id"])):
+			print("Policy with ike ", ike_policy, " and ipsec ", ipsec_policy, " already set. ");
+			return;
+		
 		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id'],'--ipsec-policy',ipsec_policy['id']]);
 		if (ret != 0):
 			print("failed to set ike and ipsec policies. Exiting\n");
@@ -170,6 +205,15 @@ class iperf3:
 		list_None = [];
       
 		return (self.switch_opt.get(option,list_None));
+
+	def get_avg_bw(self,jsonfile):
+		f = open(jsonfile, 'r');
+		data_arr = json.load(f);
+
+		sent_rate = float(data_arr['end']['sum_sent']['bits_per_second']);
+		rcv_rate  = float(data_arr['end']['sum_received']['bits_per_second']);
+
+		return sent_rate,rcv_rate;
       
 	def execute_test(self,gw_info):
 		for k,v in self.option_map.items():
@@ -192,6 +236,14 @@ class iperf3:
 		vpn_c.get_ike_policies();
 		vpn_c.get_ipsec_policies();
 
+		current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+		summary_filename = "summary" + "_" + current_time + ".csv";
+		summ_f = open(summary_filename,'w');
+
+		header = "IKE_auth_policy,IKE_encrypt_policy,IPSec_auth_policy,IPSec_encrypt_policy,Start_time_of_run,Options_used,Average_send_BW (bits/s),Average_receive_BW (bits/s),Detailed_output_filename\n";
+		summary_line = "";
+
+		summ_f.write(header);
 		for (i,j) in zip(vpn_c.ike_policies,vpn_c.ipsec_policies):
 			vpn_c.set_policy(i,j);
 
@@ -200,22 +252,34 @@ class iperf3:
 				for ic in np.arange(0,len(self.list_c)):
 					for iP in np.arange(0,len(self.list_P)):
 						for it in np.arange(0,len(self.list_t)):
-							current_time = time.strftime("%d-%m-%Y_%H:%M:%S_");
+							current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 							current_policy = "ike_" + i['auth_algo'] + "-" + i['encrypt_algo'] +\
-								"_ipsec_" + j['auth_algo'] + "-" + j['encrypt_algo'] + "_";
-							outfile = "i" + str(self.list_i[ii]) + "_to_" + str(self.list_c[ic]) + \
+								"_ipsec_" + j['auth_algo'] + "-" + j['encrypt_algo'];
+							outfile_opt = "i" + str(self.list_i[ii]) + "_to_" + str(self.list_c[ic]) + \
 								"_" + "P" + str(self.list_P[iP]) + "_" + "t" + \
-								str(self.list_t[it]) + ".out";
-							outfile = current_policy + current_time + outfile;
+								str(self.list_t[it]);
+							outfile = outfile_opt + ".json";
+							outfile = current_policy + "_" + current_time + "_" + outfile;
 							outf = open(outfile,"w");
 							print('outfile: ',outfile);
-							print('i value type: ',type(self.list_P[iP]));
-							print('i value : ',self.list_P[iP]);
+							#print('i value type: ',type(self.list_P[iP]));
+							#print('i value : ',self.list_P[iP]);
 							ret = call([self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
 								str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
-								str(self.list_t[it])],stdout=outf,stderr=outf);
+								str(self.list_t[it]),"--json"],stdout=outf,stderr=outf);
 							print("iperf call returned ",ret);
-							exit(-1);
+
+							send_rate,rcv_rate = self.get_avg_bw(outfile);
+							summary_line = i['auth_algo'] + "," + i['encrypt_algo'] +\
+									"," + j['auth_algo'] + "," + j['encrypt_algo'] +\
+									"," + current_time + "," + outfile_opt + "," + \
+									str(send_rate/pow(10,6)) + "," + str(rcv_rate/pow(10,6)) \
+									+ "," + outfile + "\n";
+							summ_f.write(summary_line);
+	
+							print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
+							#exit(-1);
+		summ_f.close();
 
 def test_iperf3(option):
 	call(["/usr/bin/iperf3",option]);	
@@ -226,14 +290,14 @@ def run_test(options):
 
 if __name__ == "__main__":
 #	test_iperf3("-h");
-	print("Enter a comma separated list of options for the iperf3 command\n");
+	print("Enter a space separated list of options for the iperf3 command\n");
 	optionlist = []
 	#optionlist = list(input().split(' '));
 	optionlist = input().split(' ');
 
 	print(optionlist);
 	
-	print("Enter the VPN gateway and gateway connection ids separated by commas\n");
+	print("Enter the VPN gateway and gateway connection ids separated by a space\n");
 	gw_info = {}
 	gateway,gateway_conn = input().split(' ');
 	

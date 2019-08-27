@@ -78,4 +78,20 @@ c0c6664b-982e-4b21-b073-eb143a31c18e   aes256-sha256-dh14   sha256              
 
 If no policies are found, then create new policies using the IBM cloud console (https://cloud.ibm.com/vpc/network/ikepolicies)
 
+5. Ensure python3 is installed including pip3. Pip3 will be required to install numpy.
+
+6. Ensure that iperf3 is installed.
+# iperf3
+
+should return a help menu.
+If it does not,
+
+on Ubuntu, 
+# sudo apt-get install iperf3
+
+Or,
+download the latest from:
+https://iperf.fr/iperf-download.php
+and install the same.
+
 Now, proceed with running the script iperf3_test.py.

@@ -1,0 +1,67 @@
+Prerequisites:
+Refer prerequisites.txt in the same directory.
+
+Execution:
+Identify the IP addresses of the source and destination using the ifconfig command.
+Ensure that the IP address of the destination is reachable from the source through a ping command.
+
+Sanity test using ping:
+E.g. assume source IP address as 10.3.4.2 and destination IP address as 10.4.5.10.
+On 10.3.4.2:
+
+# ping 10.4.5.10
+PING 10.4.5.10 (10.4.5.10) 56(84) bytes of data.
+64 bytes from 10.4.5.10: icmp_seq=1 ttl=61 time=2.88 ms
+64 bytes from 10.4.5.10: icmp_seq=2 ttl=61 time=2.05 ms
+
+If a ping works as above, now ensure that the source and destination can communicate using iperf3. 
+The iperf3 server listens on the well-known port 5201. Therefore, the destination should be enabled to allow incoming traffic on port 5201.
+Once this is done, do a sanity test using iperf3:
+
+On 10.4.5.10 (destination):
+# iperf3 -s
+-----------------------------------------------------------
+Server listening on 5201
+-----------------------------------------------------------
+
+On 10.3.4.2 (source):
+# iperf3 -c 10.4.5.10
+Connecting to host 10.4.5.10, port 5201
+[  4] local 10.3.4.2 port 46102 connected to 10.4.5.10 port 5201
+[ ID] Interval           Transfer     Bandwidth       Retr  Cwnd
+[  4]   0.00-1.00   sec  62.5 MBytes   524 Mbits/sec   12   1.51 MBytes
+[  4]   1.00-2.00   sec  62.5 MBytes   524 Mbits/sec    4   1.51 MBytes
+[  4]   2.00-3.00   sec  63.8 MBytes   535 Mbits/sec    0   1.51 MBytes
+..........
+.............
+
+If an output of the above form is seen on the source (client), a similar output is seen on the destination (server) as well. This implies iperf3 communication is ok.
+
+Now refer to the iperf3 help and identify the set of options to execute.
+The options supported by iperf3_test.py script (a subset of options within iperf3):
+-t : time in seconds to transmit for
+-P : Number of parallel client streams to run
+-i : seconds between periodic bandwidth reports
+-c : server IP address to connect to
+
+e.g. 
+# iperf3 -c 10.4.5.10 -i 2 -t 10 -P 2
+Connect to 10.4.5.10 and trasmit for 10 seconds over 2 parallel streams, and show bandwidth reports every 2 seconds.
+
+Once the above is done,
+identify the VPN gateway ID and the id of the VPN connection on this gateway to work with.
+
+start the iperf3 on the destination (if not already running).
+start iperf3_test.py as:
+# python3 iperf3_test.py
+ space separated list of options for the iperf3 command
+-c 10.4.5.10 -i 2 -t 10 -P 2
+['-c', '10.4.5.10', '-i', '2', '-t', '10', '-P', '2']
+Enter the VPN gateway and gateway connection ids separated by a space
+
+12131122-1211-4554-9f4a-12345678911 e5d72fb9-6004-44a9-1291-2108789ade70
+...
+.....
+
+Once the run completes, a summary_<timestamp>.csv file is generated in the local directory along with one .json file per combination (e.g. IKE/IPSec combination).
+
