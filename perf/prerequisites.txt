@@ -16,10 +16,6 @@ Attempting to download the binary file...
 Installing binary...
 OK
 Plug-in 'vpc-infrastructure 0.5.0' was successfully installed into /root/.bluemix/plugins/vpc-infrastructure. Use 'bx plugin show vpc-infrastructure' to show its details.
-# bx is target --gen 1
-OK
-Target Generation: 1
-
 At this stage, ensure that your id has been added to a group that has sufficient privileges to create VPC, VPN, subnet, VSI as well as VPN connection.
 
 3. Login with --sso
@@ -61,6 +57,10 @@ Tip: If you are managing Cloud Foundry applications and services
 - Use 'bx target --cf' to target Cloud Foundry org/space interactively, or use 'bx target --cf-api ENDPOINT -o ORG -s SPACE' to target the org/space.
 - Use 'bx cf' if you want to run the Cloud Foundry CLI with current  Cloud CLI context.
 
+# bx is target --gen 1
+OK
+Target Generation: 1
+
 4. Once the login works correctly, ensure that the ike and ipsec policies have been set as well.
 # bx is ipsecs
 Listing IPsec policies under account net 2 as user abc@def.com...
@@ -79,14 +79,19 @@ c0c6664b-982e-4b21-b073-eb143a31c18e   aes256-sha256-dh14   sha256              
 If no policies are found, then create new policies using the IBM cloud console (https://cloud.ibm.com/vpc/network/ikepolicies)
 
 5. Ensure python3 is installed including pip3. Pip3 will be required to install numpy.
+# sudo apt-get update
+# sudo apt-get install python3-pip
 
-6. Ensure that iperf3 is installed.
+# sudo pip3 install numpy
+
+6. Ensure that iperf3 is installed on both the source and target VSIs/VMs
 # iperf3
 
 should return a help menu.
 If it does not,
 
 on Ubuntu, 
+# sudo apt-get update
 # sudo apt-get install iperf3
 
 Or,
@@ -94,4 +99,4 @@ download the latest from:
 https://iperf.fr/iperf-download.php
 and install the same.
 
-Now, proceed with running the script iperf3_test.py.
+Now, go through the README and then proceed with running the script iperf3_test.py.
