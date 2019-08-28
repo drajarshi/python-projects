@@ -58,9 +58,18 @@ On the source, start iperf3_test.py as:
  space separated list of options for the iperf3 command
 -c 10.4.5.10 -i 2 -t 10 -P 2
 ['-c', '10.4.5.10', '-i', '2', '-t', '10', '-P', '2']
-Enter the VPN gateway and gateway connection ids separated by a space
 
-12131122-1211-4554-9f4a-12345678911 e5d72fb9-6004-44a9-1291-2108789ade70
+In order to get the VPN gateway and gateway connection ids, on the source with bx installed,
+# bx is vpns
+
+# bx is vpns
+Listing vpn gateways under account net 2 as user abc@def.com...
+ID                                 Name                Subnet                         Public IP         Resource group            VPN connections                      Created    Status
+227f319-ca7-4512-bb5-f4089585   vpn-test-l-2   77724e2e-4b21-4205-8819-e7870a8a1b83   1.15.2.74    ef610b604ba87e2f4585c1   e212-83f-48d-a96-bd1a924   2019-08-2T10:19.211+00:00   available
+
+Enter the VPN gateway and gateway connection ids as seen in the above output, separated by a space
+
+227f319-ca7-4512-bb5-f4089585 e212-83f-48d-a96-bd1a924
 ...
 .....
 
