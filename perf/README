@@ -51,8 +51,9 @@ Connect to 10.4.5.10 and trasmit for 10 seconds over 2 parallel streams, and sho
 Once the above is done,
 identify the VPN gateway ID and the id of the VPN connection on this gateway to work with.
 
-start the iperf3 on the destination (if not already running).
-start iperf3_test.py as:
+start the iperf3 server (iperf3 -s) on the destination (if not already running).
+
+On the source, start iperf3_test.py as:
 # python3 iperf3_test.py
  space separated list of options for the iperf3 command
 -c 10.4.5.10 -i 2 -t 10 -P 2
