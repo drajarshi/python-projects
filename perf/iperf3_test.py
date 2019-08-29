@@ -5,6 +5,11 @@ import numpy as np
 from subprocess import call
 import time
 import json
+import fcntl
+import struct
+import socket
+import os
+import shutil
 
 # bx is login should be functional.
 class vpn_connection:
@@ -40,11 +45,13 @@ class vpn_connection:
 	def get_ike_policies(self):
 		ike = 0;
 		ikes_outf = open('ikes.json','w');
-		ret = call(['bx','is','ike-policies','--json'],stdout=ikes_outf,stderr=ikes_outf);
+		ikes_errf = open('ikes_err.json','w');
+		ret = call(['bx','is','ike-policies','--json'],stdout=ikes_outf,stderr=ikes_errf);
 		if (ret != 0):
 			print("could not get ike policies. Exiting.");
 			exit(-1);
 	
+		ikes_errf.close();
 		ikes_outf.close();
 		self.get_policy_info(ike,self.ike_policies);
 
@@ -53,11 +60,13 @@ class vpn_connection:
 		ipsec_policies = [];
 
 		ipsecs_outf = open('ipsecs.json','w');
-		ret = call(['bx','is','ipsec-policies','--json'],stdout=ipsecs_outf,stderr=ipsecs_outf);
+		ipsecs_errf = open('ipsecs_err.json','w');
+		ret = call(['bx','is','ipsec-policies','--json'],stdout=ipsecs_outf,stderr=ipsecs_errf);
 		if (ret != 0):
 			print("could not get ipsec policies. Exiting");
 			exit(-1);
 		
+		ipsecs_errf.close();
 		ipsecs_outf.close();
 		self.get_policy_info(ipsec,self.ipsec_policies);
 
@@ -84,6 +93,9 @@ class vpn_connection:
 			current_ipsec_policy = arr["ipsec_policy"]["id"];
 		else:
 			current_ipsec_policy = None;
+
+		if (os.path.exists('current_policy.json')):
+			os.remove('current_policy.json');
 
 		return current_ike_policy,current_ipsec_policy;
 
@@ -128,13 +140,16 @@ class iperf3:
 		#	"-i":[5,10],
 		#	"-P":[5,50]
 		};
+		self.source_ip = None;
+		self.run_path = None; # Folder to run within
+		self.cwd = None; # to remember where to get back
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
 			if optionlist[i] == "-c":
 				self.coption = True;
 				self.option_map[optionlist[i]] = str(optionlist[i+1]);
-				print(self.option_map);
+				#print(self.option_map);
 				continue;
 			elif ((optionlist[i] == "-t") or (optionlist[i] == "-i") or (optionlist[i] == "-P")): 
 				if (optionlist[i] == "-t"):
@@ -144,23 +159,77 @@ class iperf3:
 				else:
 					self.Poption = True;
 				temp = [];
-				#temp.append(optionlist[i+1]);
-				#if ((i+2 < len(optionlist)) and (isinstance(optionlist[i+2],int))): # check if we have the upper limit
 				if ((i+2 < len(optionlist)) and (self.is_integer(optionlist[i+2]))): # check if we have the upper limit
 					j = int(optionlist[i+1]);
 					while(j <= int(optionlist[i+2])):
-					#for j in np.arange(int(optionlist[i+1]),int(optionlist[i+2])+1):
 						temp.append(j);
 						j += self.step;
 					self.option_map[optionlist[i]] = temp;
 				else:	# only one limit specified?
-					#if ((i+1 < len(optionlist)) and (isinstance(optionlist[i+1],int))):
 					if ((i+1 < len(optionlist)) and (self.is_integer(optionlist[i+1]))):
 						temp.append(optionlist[i+1]);
 						self.option_map[optionlist[i]] = temp;
 					else: # no limits specified for the option
 						print("No limits specified for option ",optionlist[i]);
 						exit(-1);
+
+	# change directory to the folder specified
+	def change_dir_in(self):
+		if (os.path.exists(self.run_path)):
+			shutil.rmtree(self.run_path);
+			os.makedirs(self.run_path);
+		else:
+			os.makedirs(self.run_path);
+
+		print('self.path: ',self.run_path);
+
+		try:
+			self.cwd = os.getcwd();
+		except OSError:
+			print('Could not get current working directory. error: ',OSError.args);
+			exit(-1);
+
+		try:
+			os.chdir(self.run_path);
+		except (OSError,FileNotFoundError,PermissionError,NotADirectoryError) as e:
+			print('could not change directory to ',self.run_path);
+			print('Error: ',e.args);
+			exit(-1);
+
+	# Change back to parent dir, tar up the folder and print tarball file name
+	def change_dir_out(self):
+		try:
+			os.chdir(self.cwd);
+		except (OSError,FileNotFoundError,PermissionError,NotADirectoryError) as e:
+			print('could not change directory to ',self.cwd);
+			print('Error: ',e.args);
+			exit(-1);
+
+		tarfile = self.run_path + ".tar";
+		ret = call(['tar','-cvf',tarfile,self.run_path]);
+		if (ret != 0):
+			print('failed to tar the results.');
+			exit(-1);
+		ret = call(['gzip',tarfile]);
+		if (ret != 0):
+			print('failed to zip the tarfile.');
+			exit(-1);
+
+		shutil.rmtree(self.run_path);
+
+		print('results in :',tarfile,'.gz');
+
+	# set source IP address using the if specified.
+	def set_source_ip(self,ifname='eth0'):
+		s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
+
+		# use SIOCGIFADDR to fetch the net address.
+		netaddr = fcntl.ioctl(s.fileno(),
+				0x8915,
+				struct.pack("256s",\
+				bytearray(ifname[:16],'utf-8'))); # IFNAMSIZ in if.h is 16 chars long
+
+		self.source_ip = socket.inet_ntoa(netaddr[20:24]);
 
 	# to check if the input is an integer
 	def is_integer(self,string):
@@ -225,27 +294,35 @@ class iperf3:
 				temp.append(v);
 			#temp = v;
         
-		print('self lists:');
-		print(self.list_i);
-		print(self.list_t);
-		print(self.list_P);
-		print(self.list_c);
+		#print('self lists:');
+		print('i:',self.list_i);
+		print('t:',self.list_t);
+		print('P:',self.list_P);
+		print('c:',self.list_c);
 
 		# set up the vpn_connection object here.
 		vpn_c = vpn_connection(gw_info);
 		vpn_c.get_ike_policies();
 		vpn_c.get_ipsec_policies();
 
-		current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+		current_time = time.strftime("%d-%m-%Y_%H-%M-%S");
+		self.run_path = "run_" + current_time;
+		
+		# get inside the run folder
+		self.change_dir_in();
+
+		# create summary file inside the run folder
 		summary_filename = "summary" + "_" + current_time + ".csv";
 		summ_f = open(summary_filename,'w');
 
-		header = "IKE_auth_policy,IKE_encrypt_policy,IPSec_auth_policy,IPSec_encrypt_policy,Start_time_of_run,Options_used,Average_send_BW (bits/s),Average_receive_BW (bits/s),Detailed_output_filename\n";
+		header = "IKE_auth_policy,IKE_encrypt_policy,IPSec_auth_policy,IPSec_encrypt_policy,Start_time_of_run,Options_used,Average_send_BW (Mbits/s),Average_receive_BW (Mbits/s),Detailed_output_filename\n";
 		summary_line = "";
 
 		summ_f.write(header);
 		for (i,j) in zip(vpn_c.ike_policies,vpn_c.ipsec_policies):
 			vpn_c.set_policy(i,j);
+
+			self.set_source_ip(); # using eth0 by default
 
 			# following loop runs once per policy set above
 			for ii in np.arange(0,len(self.list_i)):
@@ -255,7 +332,8 @@ class iperf3:
 							current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 							current_policy = "ike_" + i['auth_algo'] + "-" + i['encrypt_algo'] +\
 								"_ipsec_" + j['auth_algo'] + "-" + j['encrypt_algo'];
-							outfile_opt = "i" + str(self.list_i[ii]) + "_to_" + str(self.list_c[ic]) + \
+							outfile_opt = "i" + str(self.list_i[ii]) + "_" + str(self.source_ip) + \
+								"_to_" + str(self.list_c[ic]) + \
 								"_" + "P" + str(self.list_P[iP]) + "_" + "t" + \
 								str(self.list_t[it]);
 							outfile = outfile_opt + ".json";
@@ -280,6 +358,7 @@ class iperf3:
 							print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
 							#exit(-1);
 		summ_f.close();
+		self.change_dir_out();
 
 def test_iperf3(option):
 	call(["/usr/bin/iperf3",option]);	
@@ -292,10 +371,9 @@ if __name__ == "__main__":
 #	test_iperf3("-h");
 	print("Enter a space separated list of options for the iperf3 command\n");
 	optionlist = []
-	#optionlist = list(input().split(' '));
 	optionlist = input().split(' ');
 
-	print(optionlist);
+	#print(optionlist);
 	
 	print("Enter the VPN gateway and gateway connection ids separated by a space\n");
 	gw_info = {}
@@ -305,7 +383,6 @@ if __name__ == "__main__":
 	gw_info['gateway_connection_id'] = gateway_conn;
 
 	ipf3 = iperf3(optionlist);
-	#ipf3 = iperf3(optionlist,gw_info);
 	ipf3.print_option_map();
 
 	ipf3.execute_test(gw_info);
