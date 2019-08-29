@@ -125,7 +125,7 @@ class iperf3:
 	#def __init__(self,optionlist,gw_info):
 		self.iperf_command = "/usr/bin/iperf3";
 		self.ifconfig_command = "/sbin/ifconfig";
-		self.allowed_options = ["-c","-i","-P","-t"];
+		self.allowed_options = ["-e","-c","-i","-P","-t"];
 		self.coption = None;
 		self.ioption = None;
 		self.Poption = None;
@@ -133,7 +133,8 @@ class iperf3:
 		self.list_P = [];
 		self.list_i = [];
 		self.list_t = [];
-		self.step = 5; # default step to be used with lower and upper bounds if none explicitly specified.
+		self.step = 5; # default step to be used with lower and upper bounds 
+				# if none explicitly specified (-e)
 		self.option_map = {
 		#	"-c": None,
 		#	"-t":[60],
@@ -146,7 +147,11 @@ class iperf3:
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
-			if optionlist[i] == "-c":
+			if optionlist[i] == "-e":
+				self.option_map[optionlist[i]] = str(optionlist[i+1]);	
+				self.step = int(optionlist[i+1]);
+			elif optionlist[i] == "-c":
+				print("setting step to: ",self.step);
 				self.coption = True;
 				self.option_map[optionlist[i]] = str(optionlist[i+1]);
 				#print(self.option_map);

@@ -57,7 +57,15 @@ On the source, start iperf3_test.py as:
 # python3 iperf3_test.py
  space separated list of options for the iperf3 command
 -c 10.4.5.10 -i 2 -t 10 -P 2
-['-c', '10.4.5.10', '-i', '2', '-t', '10', '-P', '2']
+
+Additionally, -e can be used to specify a step to use in case of lower and upper bounds of an option.
+e.g.
+-e 2 -c 10.4.5.10 -i 2 -t 10 -P 2 6
+In this case, tests will run for 2,4, and 6 parallel streams (for -P lower bound: 2, upper bound: 6 and step: 2 specified by -e).
+connect to 10.4.5.10 and transmit for 10 seconds over 2,4 and 6 parallel streams, and show bandwidth reports every 2 seconds
+-e must be specified as the first option in the set of options else, it will be ignored and a default step of 5 will be set.
+
+if -e is not specified, a default step of 5 is assumed.
 
 In order to get the VPN gateway and gateway connection ids, on the source with bx installed,
 # bx is vpns
@@ -74,4 +82,6 @@ Enter the VPN gateway and gateway connection ids as seen in the above output, se
 .....
 
 Once the run completes, a summary_<timestamp>.csv file is generated in the local directory along with one .json file per combination (e.g. IKE/IPSec combination).
+The entire run happens within a timestamp specific folder that is created, and at the end of the run, the folder is tarred up as
+run_<timestamp>.tar.gz and the run folder is deleted.
 
