@@ -98,6 +98,40 @@ class vpn_connection:
 			os.remove('current_policy.json');
 
 		return current_ike_policy,current_ipsec_policy;
+        
+	def set_ike_policy(self,ike_policy):
+		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
+		print('current policy: IKE: ', curr_ike_policy_id);
+
+		if (curr_ike_policy_id == ike_policy["id"]):
+			print("Policy with ike ", ike_policy, " already set. ");
+			return;
+			
+		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id'],'--ipsec-policy',curr_ipsec_policy_id]);
+		if (ret != 0):
+			print("failed to set ike policy. Exiting\n");
+			exit(-1);
+
+		self.ike_policy_id = ike_policy['id'];
+
+		print('set ike policy to auth:',ike_policy['auth_algo'], ' and encrypt:', ike_policy['encrypt_algo']);
+                
+	def set_ipsec_policy(self,ipsec_policy):
+		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
+		print('current policy: IPSec: ', curr_ipsec_policy_id);
+
+		if (curr_ipsec_policy_id == ipsec_policy["id"]):
+			print("Policy with ipsec ", ipsec_policy, " already set. ");
+			return;
+		
+		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',curr_ike_policy_id,'--ipsec-policy',ipsec_policy['id']]);
+		if (ret != 0):
+			print("failed to set ipsec policy. Exiting\n");
+			exit(-1);
+
+		self.ipsec_policy_id = ipsec_policy['id'];
+
+		print('set ipsec policy to auth:',ipsec_policy['auth_algo'], ' and encrypt:', ipsec_policy['encrypt_algo']);
 
 	def set_policy(self,ike_policy,ipsec_policy):
 		# First check the currently set ike_policy and ipsec_policy.
@@ -125,7 +159,7 @@ class iperf3:
 	#def __init__(self,optionlist,gw_info):
 		self.iperf_command = "/usr/bin/iperf3";
 		self.ifconfig_command = "/sbin/ifconfig";
-		self.allowed_options = ["-e","-c","-i","-P","-t"];
+		self.allowed_options = ["-e","-c","-i","-P","-t","-p"];
 		self.coption = None;
 		self.ioption = None;
 		self.Poption = None;
@@ -144,11 +178,12 @@ class iperf3:
 		self.source_ip = None;
 		self.run_path = None; # Folder to run within
 		self.cwd = None; # to remember where to get back
+		self.ike_ipsec_option = "Current"; # Run current IKE and IPSec combination only
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
 			if optionlist[i] == "-e":
-				self.option_map[optionlist[i]] = str(optionlist[i+1]);	
+				self.option_map[optionlist[i]] = str(optionlist[i+1]);
 				self.step = int(optionlist[i+1]);
 			elif optionlist[i] == "-c":
 				print("setting step to: ",self.step);
@@ -156,6 +191,19 @@ class iperf3:
 				self.option_map[optionlist[i]] = str(optionlist[i+1]);
 				#print(self.option_map);
 				continue;
+			elif optionlist[i] == "-p": # Run for all IKE/IPSec policy combinations or
+										# run in pairs e.g. the combination of the 1st IKE and 
+                                        # IPSec policies, then the 2nd of each and so on.
+                                        # or run for the currently set IKE/IPSec policy only
+				if ((optionlist[i+1] == "All") or\
+					(optionlist[i+1] == "Pair") or\
+					(optionlist[i+1] == "Current")): # just run with the currently set IKE/IPSec policies
+						self.ike_ipsec_option = optionlist[i+1];
+						print("set policy option to: ",optionlist[i+1]);
+				else:
+					print("Invalid parameter specified for -p or parameter missing.\n");
+					print("Ignoring -p option. Will run with currently set policies only.\n");
+					continue;
 			elif ((optionlist[i] == "-t") or (optionlist[i] == "-i") or (optionlist[i] == "-P")): 
 				if (optionlist[i] == "-t"):
 					self.toption = True;
@@ -288,6 +336,102 @@ class iperf3:
 		rcv_rate  = float(data_arr['end']['sum_received']['bits_per_second']);
 
 		return sent_rate,rcv_rate;
+
+	def run_core_loops(self,summ_f,i,j):
+        # following loop runs once per policy set above
+		self.set_source_ip();
+
+		for ii in np.arange(0,len(self.list_i)):
+			for ic in np.arange(0,len(self.list_c)):
+				for iP in np.arange(0,len(self.list_P)):
+					for it in np.arange(0,len(self.list_t)):
+						current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+						current_policy = "ike_" + i['auth_algo'] + "-" + i['encrypt_algo'] +\
+										"_ipsec_" + j['auth_algo'] + "-" + j['encrypt_algo'];
+						outfile_opt = "i" + str(self.list_i[ii]) + "_" + str(self.source_ip) + \
+									"_to_" + str(self.list_c[ic]) + \
+									"_" + "P" + str(self.list_P[iP]) + "_" + "t" + \
+									str(self.list_t[it]);
+						outfile = outfile_opt + ".json";
+						outfile = current_policy + "_" + current_time + "_" + outfile;
+						outf = open(outfile,"w");
+						print('outfile: ',outfile);
+						#print('i value type: ',type(self.list_P[iP]));
+						#print('i value : ',self.list_P[iP]);
+						ret = call([self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
+									str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
+									str(self.list_t[it]),"--json"],stdout=outf,stderr=outf);
+						print("iperf call returned ",ret);
+
+						send_rate,rcv_rate = self.get_avg_bw(outfile);
+						summary_line = i['auth_algo'] + "," + i['encrypt_algo'] +\
+										"," + j['auth_algo'] + "," + j['encrypt_algo'] +\
+										"," + current_time + "," + outfile_opt + "," + \
+										str(send_rate/pow(10,6)) + "," + str(rcv_rate/pow(10,6)) \
+										+ "," + outfile + "\n";
+						summ_f.write(summary_line);
+
+						print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
+						#exit(-1);
+
+        
+	def run_current_only(self,summ_f,vpn_c):
+		current_ike_id,current_ipsec_id = vpn_c.get_current_policy();
+		print('current ike: ',current_ike_id,' current_ipsec: ',current_ipsec_id);
+
+		if (current_ike_id == None):
+		    current_ike_policy = {'id':'No_id',
+		    'auth_algo':'Auto_auth_IKE',
+		    'encrypt_algo':'Auto_encrypt_IKE'};
+		else:
+		    for i in vpn_c.ike_policies:
+                        if (i['id'] == current_ike_id):
+                            current_ike_policy = i;
+                            break;
+
+		if (current_ipsec_id == None):
+		    current_ipsec_policy = {'id':'No_id',
+		    'auth_algo':'Auto_auth_IPSec',
+		    'encrypt_algo':'Auto_encrypt_IPSec'};
+		else:
+		    for i in vpn_c.ipsec_policies:
+                        if (i['id'] == current_ipsec_id):
+                            current_ipsec_policy = i;
+                            break;
+
+		self.run_core_loops(summ_f,current_ike_policy,current_ipsec_policy);
+
+    # Run all other ipsec policies against IKE-Auto: currently this does not include IPSec-Auto
+	def run_ike_auto(self,summ_f,vpn_c):        
+	    ike_auto_policy = {'id':'No_id',
+	    'auth_algo':'Auto_auth_IKE',
+	    'encrypt_algo':'Auto_encrypt_IKE'};
+
+	    for j in vpn_c.ipsec_policies:
+                vpn_c.set_ipsec_policy(j);
+                self.run_core_loops(summ_f,ike_auto_policy,j);
+
+    # Workaround routine. Run this after setting IKE/IPSec to Auto in console
+    # Helps cover IKE/IPSec : Auto/Auto as well as IKE/IPSec: Auto/<configured policies>
+    # This is because IKE/IPSec: Auto/Auto can not be set using CLI for now (no associated id)
+	def run_auto_workaround(self,summ_f,vpn_c):
+            run_current_only(self,summ_f,vpn_c);
+            run_ike_auto(self,summ_f,vpn_c);
+
+	def run_all(self,summ_f,vpn_c):
+		# Comment the workaround below once IKE/IPSec:Auto/Auto can be set using the CLI
+            self.run_auto_workaround(self,summ_f,vpn_c);
+
+            for i in vpn_c.ike_policies:
+                vpn_c.set_ike_policy(i);
+                for j in vpn_c.ipsec_policies:
+                    vpn_c.set_ipsec_policy(j);
+                    self.run_core_loops(summ_f,i,j);
+
+	def run_pairs(self,summ_f,vpn_c):
+		for (i,j) in zip(vpn_c.ike_policies,vpn_c.ipsec_policies):
+			vpn_c.set_policy(i,j);
+			self.run_core_loops(summ_f,i,j);
       
 	def execute_test(self,gw_info):
 		for k,v in self.option_map.items():
@@ -324,44 +468,13 @@ class iperf3:
 		summary_line = "";
 
 		summ_f.write(header);
-		for (i,j) in zip(vpn_c.ike_policies,vpn_c.ipsec_policies):
-			vpn_c.set_policy(i,j);
+		if (self.ike_ipsec_option == "Current"):
+			self.run_current_only(summ_f,vpn_c);
+		elif (self.ike_ipsec_option == "All"):
+			self.run_all(summ_f,vpn_c);
+		else: # Pair
+			self.run_pairs(summ_f,vpn_c);
 
-			self.set_source_ip(); # using eth0 by default
-
-			# following loop runs once per policy set above
-			for ii in np.arange(0,len(self.list_i)):
-				for ic in np.arange(0,len(self.list_c)):
-					for iP in np.arange(0,len(self.list_P)):
-						for it in np.arange(0,len(self.list_t)):
-							current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
-							current_policy = "ike_" + i['auth_algo'] + "-" + i['encrypt_algo'] +\
-								"_ipsec_" + j['auth_algo'] + "-" + j['encrypt_algo'];
-							outfile_opt = "i" + str(self.list_i[ii]) + "_" + str(self.source_ip) + \
-								"_to_" + str(self.list_c[ic]) + \
-								"_" + "P" + str(self.list_P[iP]) + "_" + "t" + \
-								str(self.list_t[it]);
-							outfile = outfile_opt + ".json";
-							outfile = current_policy + "_" + current_time + "_" + outfile;
-							outf = open(outfile,"w");
-							print('outfile: ',outfile);
-							#print('i value type: ',type(self.list_P[iP]));
-							#print('i value : ',self.list_P[iP]);
-							ret = call([self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
-								str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
-								str(self.list_t[it]),"--json"],stdout=outf,stderr=outf);
-							print("iperf call returned ",ret);
-
-							send_rate,rcv_rate = self.get_avg_bw(outfile);
-							summary_line = i['auth_algo'] + "," + i['encrypt_algo'] +\
-									"," + j['auth_algo'] + "," + j['encrypt_algo'] +\
-									"," + current_time + "," + outfile_opt + "," + \
-									str(send_rate/pow(10,6)) + "," + str(rcv_rate/pow(10,6)) \
-									+ "," + outfile + "\n";
-							summ_f.write(summary_line);
-	
-							print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
-							#exit(-1);
 		summ_f.close();
 		self.change_dir_out();
 
