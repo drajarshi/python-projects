@@ -107,7 +107,7 @@ class vpn_connection:
 			print("Policy with ike ", ike_policy, " already set. ");
 			return;
 			
-		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id'],'--ipsec-policy',curr_ipsec_policy_id]);
+		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id']]);
 		if (ret != 0):
 			print("failed to set ike policy. Exiting\n");
 			exit(-1);
@@ -124,7 +124,7 @@ class vpn_connection:
 			print("Policy with ipsec ", ipsec_policy, " already set. ");
 			return;
 		
-		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',curr_ike_policy_id,'--ipsec-policy',ipsec_policy['id']]);
+		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ipsec-policy',ipsec_policy['id']]);
 		if (ret != 0):
 			print("failed to set ipsec policy. Exiting\n");
 			exit(-1);
@@ -415,12 +415,12 @@ class iperf3:
     # Helps cover IKE/IPSec : Auto/Auto as well as IKE/IPSec: Auto/<configured policies>
     # This is because IKE/IPSec: Auto/Auto can not be set using CLI for now (no associated id)
 	def run_auto_workaround(self,summ_f,vpn_c):
-            run_current_only(self,summ_f,vpn_c);
-            run_ike_auto(self,summ_f,vpn_c);
+            self.run_current_only(summ_f,vpn_c);
+            self.run_ike_auto(summ_f,vpn_c);
 
 	def run_all(self,summ_f,vpn_c):
 		# Comment the workaround below once IKE/IPSec:Auto/Auto can be set using the CLI
-            self.run_auto_workaround(self,summ_f,vpn_c);
+            self.run_auto_workaround(summ_f,vpn_c);
 
             for i in vpn_c.ike_policies:
                 vpn_c.set_ike_policy(i);
