@@ -1,6 +1,25 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.2:
+-p is available as an additional option.
+This is used to select one of three: "All", "Pair" or "Current"
+"All": Run all IPSec policies against each of the IKE policies. 
+"Pair": Pick one policy each from the list of IKE and IPSec policies, and run that combination. Once
+complete, pick the second policy from each and continue, until all policies are exhausted. This assumes
+that the number of IKE and IPSec policies configured is the same.
+"Current": Run ONLY the currently set policy and exit.
+
+Also, ensure that the IKE and IPSec policy for both VPN connections are set to Auto and then run the
+-p All or -p Pair options.
+
+so, the options can be specified as:
+-e 1 -p All -c 10.4.5.10 -i 2 -t 10 -P 2
+
+Not providing the -p option defaults to -p Current.
+Also, the -p All option currently runs the Auto/Auto for IKE/IPSec, followed by all IPSec policies against the Auto IKE policy. Subsequently, it runs all combinations of the policies that have been created. The Auto policy specific runs are more of a workaround for now until the Auto IKE and IPSec policies can be explicitly set using the ibmcloud CLI.
+
+Version 0.1:
 Execution:
 Identify the IP addresses of the source and destination using the ifconfig command.
 Ensure that the IP address of the destination is reachable from the source through a ping command.
