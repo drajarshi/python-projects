@@ -1,6 +1,11 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.3:
+-p is available with an additional option. "Current_IKE" is the new option added.
+So, one among "All","Pair","Current_IKE" or "Current" may be specified as the argument to -p.
+Specifying "Current_IKE" results in running all the set IPSec policies (except Auto) against the current IKE policy.
+
 Version 0.2:
 -p is available as an additional option.
 This is used to select one of three: "All", "Pair" or "Current"

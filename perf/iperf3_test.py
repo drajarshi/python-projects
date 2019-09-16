@@ -10,6 +10,7 @@ import struct
 import socket
 import os
 import shutil
+import time
 
 # bx is login should be functional.
 class vpn_connection:
@@ -159,7 +160,7 @@ class iperf3:
 	#def __init__(self,optionlist,gw_info):
 		self.iperf_command = "/usr/bin/iperf3";
 		self.ifconfig_command = "/sbin/ifconfig";
-		self.allowed_options = ["-e","-c","-i","-P","-t","-p"];
+		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s"];
 		self.coption = None;
 		self.ioption = None;
 		self.Poption = None;
@@ -179,6 +180,8 @@ class iperf3:
 		self.run_path = None; # Folder to run within
 		self.cwd = None; # to remember where to get back
 		self.ike_ipsec_option = "Current"; # Run current IKE and IPSec combination only
+		self.sleep_time = 10; # default sleep time between consecutive test runs
+		print("set default sleep time between consecutive runs to: ",self.sleep_time," seconds.");
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
@@ -191,12 +194,21 @@ class iperf3:
 				self.option_map[optionlist[i]] = str(optionlist[i+1]);
 				#print(self.option_map);
 				continue;
+			elif optionlist[i] == "-s": # sleep time between runs
+				if (self.is_integer(optionlist[i+1])):
+				    print("setting sleep time to ",optionlist[i+1]);
+				    self.sleep_time = int(optionlist[i+1]);
+				else:
+				    print("a integer value needs to be specified with -s. Retry as -s <sleeptime>");
+				    exit(-1);
+				continue;
 			elif optionlist[i] == "-p": # Run for all IKE/IPSec policy combinations or
-										# run in pairs e.g. the combination of the 1st IKE and 
+					# run in pairs e.g. the combination of the 1st IKE and 
                                         # IPSec policies, then the 2nd of each and so on.
                                         # or run for the currently set IKE/IPSec policy only
 				if ((optionlist[i+1] == "All") or\
 					(optionlist[i+1] == "Pair") or\
+					(optionlist[i+1] == "Current_IKE") or\
 					(optionlist[i+1] == "Current")): # just run with the currently set IKE/IPSec policies
 						self.ike_ipsec_option = optionlist[i+1];
 						print("set policy option to: ",optionlist[i+1]);
@@ -372,6 +384,8 @@ class iperf3:
 						summ_f.write(summary_line);
 
 						print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
+						print('sleeping for ',self.sleep_time,' seconds.');
+						time.sleep(self.sleep_time);
 						#exit(-1);
 
         
@@ -419,7 +433,7 @@ class iperf3:
             self.run_ike_auto(summ_f,vpn_c);
 
 	def run_all(self,summ_f,vpn_c):
-		# Comment the workaround below once IKE/IPSec:Auto/Auto can be set using the CLI
+	# Comment the workaround below once IKE/IPSec:Auto/Auto can be set using the CLI
             self.run_auto_workaround(summ_f,vpn_c);
 
             for i in vpn_c.ike_policies:
@@ -427,6 +441,17 @@ class iperf3:
                 for j in vpn_c.ipsec_policies:
                     vpn_c.set_ipsec_policy(j);
                     self.run_core_loops(summ_f,i,j);
+
+	# Run all ipsec policies (excludes Auto as it doesn't have a id) against the current ike policy
+	def run_all_ipsec(self,summ_f,vpn_c):
+	    current_ike_id,current_ipsec_id = vpn_c.get_current_policy();
+	    for i in vpn_c.ike_policies:
+                if i['id'] == current_ike_id:
+                    for j in vpn_c.ipsec_policies:
+                        vpn_c.set_ipsec_policy(j);
+                        self.run_core_loops(summ_f,i,j);
+                else:
+                    continue;
 
 	def run_pairs(self,summ_f,vpn_c):
 		for (i,j) in zip(vpn_c.ike_policies,vpn_c.ipsec_policies):
@@ -470,6 +495,8 @@ class iperf3:
 		summ_f.write(header);
 		if (self.ike_ipsec_option == "Current"):
 			self.run_current_only(summ_f,vpn_c);
+		elif (self.ike_ipsec_option == "Current_IKE"): # Iterate current IKE against all IPSec
+			self.run_all_ipsec(summ_f,vpn_c);
 		elif (self.ike_ipsec_option == "All"):
 			self.run_all(summ_f,vpn_c);
 		else: # Pair
