@@ -11,6 +11,7 @@ import socket
 import os
 import shutil
 import time
+import sys
 
 # bx is login should be functional.
 class vpn_connection:
@@ -285,7 +286,8 @@ class iperf3:
 		print('results in :',tarfile,'.gz');
 
 	# set source IP address using the if specified.
-	def set_source_ip(self,ifname='eth0'):
+	#def set_source_ip(self,ifname='eth0'):
+	def set_source_ip(self,ifname='ens3'):
 		s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
 
 		# use SIOCGIFADDR to fetch the net address.
@@ -512,20 +514,45 @@ def test_iperf3(option):
 def run_test(options):
 	return;
 
+def get_config(input_file):
+        inf = open(input_file,'r');
+
+        data = json.load(inf);
+        optionlist = []
+        gw_info = {}
+
+        for k in data:
+            if 'gateway' in k:
+                gw_info[k] = data[k];
+                continue;
+
+            optionlist.append(k);
+            if isinstance(data[k],list): # A list of values is mapped
+                for i in np.arange(0,len(data[k])):
+                    optionlist.append(data[k][i]);
+            else:
+                optionlist.append(data[k]);
+
+        return [optionlist,gw_info];
+
 if __name__ == "__main__":
 #	test_iperf3("-h");
-	print("Enter a space separated list of options for the iperf3 command\n");
 	optionlist = []
-	optionlist = input().split(' ');
-
-	#print(optionlist);
-	
-	print("Enter the VPN gateway and gateway connection ids separated by a space\n");
 	gw_info = {}
-	gateway,gateway_conn = input().split(' ');
-	
-	gw_info['gateway_id'] = gateway;
-	gw_info['gateway_connection_id'] = gateway_conn;
+
+	if (len(sys.argv) == 2):
+	   [optionlist,gw_info] = get_config(sys.argv[1]);
+	else:
+	    print("Enter a space separated list of options for the iperf3 command\n");
+	    optionlist = input().split(' ');
+
+	    #print(optionlist);
+
+	    print("Enter the VPN gateway and gateway connection ids separated by a space\n");
+	    gateway,gateway_conn = input().split(' ');
+
+	    gw_info['gateway_id'] = gateway;
+	    gw_info['gateway_connection_id'] = gateway_conn;
 
 	ipf3 = iperf3(optionlist);
 	ipf3.print_option_map();

@@ -1,6 +1,27 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.4:
+It is possible to now specify a config file as input to the iperf3_test.py,e.g.
+{
+'-e':1,
+'-c':'10.242.128.7',
+'-i':2,
+'-t':10,
+'-p':'All',
+'-P':[1,10],
+'gateway_id':'1234-56accdea-aeff-4321-6789-9876678954467112c',
+'gateway_connection_id':'4321-abdc11234-ase1-0122-122a-aedd2dd1ee2f'
+}
+
+e.g.
+# python3 iperf3_test.py input_file.config
+
+where input_file.config may contain the information as in the above example.
+If the 3rd parameter (the config/ input file) is skipped, then, the script expects inputs on the command line (as before).
+
+Using the input file option allows the script to be run in the background as well as detached from the shell (nohup).
+
 Version 0.3:
 -p is available with an additional option. "Current_IKE" is the new option added.
 So, one among "All","Pair","Current_IKE" or "Current" may be specified as the argument to -p.
