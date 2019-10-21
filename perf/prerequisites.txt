@@ -17,6 +17,37 @@ Installing binary...
 OK
 Plug-in 'vpc-infrastructure 0.5.0' was successfully installed into /root/.bluemix/plugins/vpc-infrastructure. Use 'bx plugin show vpc-infrastructure' to show its details.
 At this stage, ensure that your id has been added to a group that has sufficient privileges to create VPC, VPN, subnet, VSI as well as VPN connection.
+Also, make sure that the command, 'bx is ikes' runs. This is because the ikes and ipsecs subcommands (under bx is) are available in specific versions of vpc-infrastructure (v0.5.1).
+If 'bx is ikes' is not recognized, uninstall the current version of the vpc-infrastructure plugin:
+# bx plugin uninstall vpc-infrastructure
+
+Then, check the following:
+# bx plugin repo-plugin vpc-infrastructure -r 'IBM Cloud'
+Looking up 'vpc-infrastructure' from repository 'IBM Cloud'...
+
+Name:           vpc-infrastructure/infrastructure-service
+Description:    Manage Virtual Private Cloud infrastructure service
+Company:        IBM
+Homepage:
+Authors:
+Versions:       Version   Compatible   SHA1                                       Minimal CLI version required
+                0.5.5     Yes          f4827c6fbfae32a320ab57f888df81901c29d826   N/A
+                0.5.4     Yes          16bb3a9c9ab9a8b01b911f1c42250b1a983ab918   N/A
+                0.5.3     Yes          87c397fc5cedd060370420c61064bc071a3fc624   N/A
+                0.5.2     Yes          483b1012c815f9810240ea15d798278fb22937c3   N/A
+                0.5.1     Yes          072e53d72c9f9af23319609b5e492ed7c2f70e01   N/A
+                0.5.0     Yes          ec611b249cd4e04d8d88411fe261e37cf9203603   N/A
+                0.4.6     Yes          f97fdb9ceb7af0bd3f11d80ed467392d52f58cb7   N/A
+                0.4.5     Yes          d116654714559094a64b03eaabfd383627cd99b7   N/A
+                0.4.4     Yes          6691166688d5fab3294616b436d7a6a772078afd   N/A
+                0.4.3     Yes          0b7fb4ff52f967459763d43a97cb7ba37911a0a5   N/A
+                0.4.2     Yes          d914058b4cc41c36f0d6b3521141ef871a1e8056   N/A
+                0.4.1     Yes          ff0d696a44dcae037f9b6bb48373717080a7fa42   N/A
+
+# bx plugin install vpc-infrastructure -v 0.5.1
+Once this version is installed, recheck the command 'bx is ikes'. This command should be recognized and it should fail since a login is not done yet.
+
+In the above example v0.5.1 was installed. Any other version that has the ikes and ipsecs subcommands may also be used (unfortunately the latest version 0.5.5 does not have it).
 
 3. Login with --sso
 # bx login --sso
