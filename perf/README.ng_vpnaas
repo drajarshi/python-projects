@@ -1,0 +1,36 @@
+v0.1:
+This script allows specifying one or more pairs of client and server ips, either in a config file, 
+e.g. 
+[
+{"client":"1.42.92.106",
+"server":"1.42.92.122"}
+]
+
+or as a sequence of client and server ips as input to the script when prompted.
+`
+Start vmstat and mpstat manually on the VPN Gateways. 
+For the first option, the configuration file may be named as cli_serv.config, and the script called as,
+# python3 run_ng_vpnaas.py cli_serv.config
+
+Run this script which starts mpstat and vmstat on the client and the server, and subsequently starts iperf3 in server
+mode on the server IP. Subsequently, it starts iperf3_test.py on the client.
+
+Once iperf3_test.py completes, the vmstat and mpstat monitors on the client and server need to be manually stopped.
+Similarly, they need to be stopped on the VPN gateways as well.
+
+Each monitor (mpstat/ vmstat) file is named with ip address, date stamp, e.g.
+1.42.92.122_mpstat_07-12-2019_19:58:09.out
+
+The intent of this script is to simplify starting monitors and also triggering iperf3_test.py remotely.
+
+Dependencies:
+============
+1. the vmstat and  mpstat monitors need to be manually started on both the VPN Gateways.
+2. the iperf3_test.py should already be copied and available in the root folder of the client system.
+3. iperf3 should be installed on the server.
+4. sysstat should be installed on the server and client for mpstat and vmstat to work.
+
+Next:
+=====
+1. Add option to specify the ssh key path.
+2. Add method to capture the results file from the client and server automatically to the trigger location.

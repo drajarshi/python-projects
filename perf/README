@@ -1,6 +1,25 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.4.1:
+Corrected form of input config file:
+{
+"-e":1,
+"-c":"10.242.128.4",
+"-i":2,
+"-t":10,
+"-p":"All",
+"-P":[1,10],
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+Note that the peer gateway information has also been added and needs to be specified. So, each IKE-IPSec policy
+combination is set both on the connection of the gateway as well as the peer gateway.
+
+
 Version 0.4:
 It is possible to now specify a config file as input to the iperf3_test.py,e.g.
 {
