@@ -22,6 +22,8 @@ class vpn_connection:
 		self.ipsec_policy_id = None;
 		self.id = data['gateway_connection_id'];
 		self.gateway_id = data['gateway_id'];
+		self.peer_id = data['peer_gateway_connection_id'];
+		self.peer_gateway_id = data['peer_gateway_id'];
 		self.ike_policies = []; # all policies are for the VPC not the connection.
 		self.ipsec_policies = []; 
 
@@ -114,6 +116,11 @@ class vpn_connection:
 			print("failed to set ike policy. Exiting\n");
 			exit(-1);
 
+		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ike-policy',ike_policy['id']]);
+		if (ret != 0):
+			print("failed to set ike policy on peer gw. Exiting\n");
+			exit(-1);
+
 		self.ike_policy_id = ike_policy['id'];
 
 		print('set ike policy to auth:',ike_policy['auth_algo'], ' and encrypt:', ike_policy['encrypt_algo']);
@@ -129,6 +136,11 @@ class vpn_connection:
 		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ipsec-policy',ipsec_policy['id']]);
 		if (ret != 0):
 			print("failed to set ipsec policy. Exiting\n");
+			exit(-1);
+
+		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ipsec-policy',ipsec_policy['id']]);
+		if (ret != 0):
+			print("failed to set ipsec policy on peer gw. Exiting\n");
 			exit(-1);
 
 		self.ipsec_policy_id = ipsec_policy['id'];
@@ -148,6 +160,11 @@ class vpn_connection:
 		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id'],'--ipsec-policy',ipsec_policy['id']]);
 		if (ret != 0):
 			print("failed to set ike and ipsec policies. Exiting\n");
+			exit(-1);
+
+		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ike-policy',ike_policy['id'],'--ipsec-policy',ipsec_policy['id']]);
+		if (ret != 0):
+			print("failed to set ike and ipsec policies on peer gw. Exiting\n");
 			exit(-1);
 
 		self.ike_policy_id = ike_policy['id'];
@@ -553,6 +570,9 @@ if __name__ == "__main__":
 
 	    gw_info['gateway_id'] = gateway;
 	    gw_info['gateway_connection_id'] = gateway_conn;
+
+	    print("Enter the peer VPN gateway and gateway connection ids separated by a space\n");
+	    peer_gateway,peer_gateway_conn = input().split(' ');
 
 	ipf3 = iperf3(optionlist);
 	ipf3.print_option_map();
