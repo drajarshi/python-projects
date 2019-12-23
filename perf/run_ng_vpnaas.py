@@ -31,7 +31,7 @@ class list_dir:
 			print("Value error while connecting to ",self.ip);
 			exit(-1);
 			
-		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
+		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H-%M-%S");
 		output_file = self.ip + "_listdir_" + current_time + ".out";
 		self.command = "nohup " + self.command + "  " + self.args[0] + output_file + self.args[1];
 
@@ -50,7 +50,6 @@ class list_dir:
 
 class mpstat:
 	def __init__(self,ip,args=["-P ALL 2 > ", " 2>&1 &"]):
-		#print('in mpstat init');
 		self.command = "/usr/bin/mpstat";
 		self.args = args;
 		self.ip = ip;
@@ -66,8 +65,8 @@ class mpstat:
 			print("Value error while connecting to ",self.ip);
 			exit(-1);
 			
-		#print('in exec_mpstat: self.ip: ',self.ip,' self.args: ',self.args);
-		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
+		print('in exec_mpstat: self.ip: ',self.ip,' self.args: ',self.args);
+		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H-%M-%S");
 		output_file = self.ip + "_mpstat_" + current_time + ".out";
 		self.command = "nohup " + self.command + "  " + self.args[0] + output_file + self.args[1];
 
@@ -100,8 +99,8 @@ class vmstat:
 			print("Value error while connecting to ",self.ip);
 			exit(-1);
 			
-		#print('in exec_vmstat: self.ip: ', self.ip, ' self.args: ',self.args);
-		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
+		print('in exec_vmstat: self.ip: ', self.ip, ' self.args: ',self.args);
+		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H-%M-%S");
 		output_file = self.ip + "_vmstat_" + current_time + ".out";
 		self.command = "nohup " + self.command + "  " + self.args[0] + output_file + self.args[1];
 
@@ -124,6 +123,7 @@ class monitors():
 		self.listdir = list_dir(ip);
 
 	def start(self):
+		print('in monitors start.');
 		self.mpstat.start();
 		self.vmstat.start();
 		#self.listdir.start();
@@ -145,7 +145,7 @@ class iperf3_server:
 			print("Value error while connecting to ",self.ip);
 			exit(-1);
 			
-		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
+		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H-%M-%S");
 		output_file = self.ip + "_iperf3_server_" + current_time + ".out";
 		self.command = "nohup " + self.command + "  " + self.args[0] + output_file + self.args[1];
 
@@ -157,11 +157,12 @@ class iperf3_server:
 			exit(-1);
 	
 class iperf3_client:
-	def __init__(self,ip,config="input.config",args=[" > "," 2>&1 &"]):
+	def __init__(self,client_ip,server_ip,config="input.config",args=[" > "," 2>&1 &"]):
 		self.command = "/root/iperf3_test.py";
 		self.config_file = "/root/" + config;
 		self.args = args;
-		self.ip = ip;
+		self.ip = client_ip;
+		self.server_ip = server_ip;
 
 	def start(self):
 		try:
@@ -174,8 +175,8 @@ class iperf3_client:
 			print("Value error while connecting to ",self.ip);
 			exit(-1);
 			
-		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
-		output_file = self.ip + "_iperf3_test_client_" + current_time + ".out";
+		current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H-%M-%S");
+		output_file = self.ip + "_" + self.server_ip + "_iperf3_test_client_" + current_time + ".out";
 		self.command = "nohup /usr/bin/python3 " + self.command + "  " + self.config_file + self.args[0] + output_file\
 				+ self.args[1];
 
@@ -198,9 +199,9 @@ class server():
 		self.iperf3_server.start();
 		
 class client:
-	def __init__(self,client_ip,mpstat_args=None,vmstat_args=None):
+	def __init__(self,client_ip,server_ip,client_config,mpstat_args=None,vmstat_args=None):
 		self.monitors = monitors(client_ip,mpstat_args,vmstat_args);
-		self.iperf3_client = iperf3_client(client_ip);
+		self.iperf3_client = iperf3_client(client_ip,server_ip,client_config);
 
 	def start_run(self):
 		print("client: in start_run");
@@ -208,9 +209,9 @@ class client:
 		self.iperf3_client.start();
 
 class run_combination():
-	def __init__(self,client_ip,server_ip):
+	def __init__(self,client_ip,server_ip,client_config):
 		self.server = server(server_ip);
-		self.client = client(client_ip);
+		self.client = client(client_ip,server_ip,client_config);
 
 	def start_server(self):
 		self.server.start_run();
@@ -221,13 +222,14 @@ class run_combination():
 # Start iperf3 server
 
 # All routines to be started within a thread context
-def start_client_server_pair(client_server_addresses):
-	client_ip,server_ip = client_server_addresses;
-	rc = run_combination(client_ip,server_ip);
+#def start_client_server_pair(client_server_addresses):
+def start_client_server_pair(client_server_data):
+	client_ip,server_ip,client_config = client_server_data;
+	rc = run_combination(client_ip,server_ip,client_config);
 	rc.start_server();
 	rc.start_client();
 
-def get_config(configfile="input.config"):
+def get_config(configfile="cli_serv.config"):
 	cli_serv_pairs = [];
 
 	print('config file passed: ',configfile);
@@ -237,7 +239,7 @@ def get_config(configfile="input.config"):
 	print('data after json load: ',data);
 	
 	for i in np.arange(0,len(data)):
-		cli_serv_pairs.append((data[i]["client"],data[i]["server"]));
+		cli_serv_pairs.append((data[i]["client"],data[i]["server"],data[i]["client_config"]));
 
 	return cli_serv_pairs;
 

@@ -26,6 +26,7 @@ class vpn_connection:
 		self.peer_gateway_id = data['peer_gateway_id'];
 		self.ike_policies = []; # all policies are for the VPC not the connection.
 		self.ipsec_policies = []; 
+		#self.lock = Lock();
 
 	def get_policy_info(self,what,policy_list):
 		ike = 0;
@@ -75,33 +76,39 @@ class vpn_connection:
 		self.get_policy_info(ipsec,self.ipsec_policies);
 
 	def get_current_policy(self):
-		outf = open('current_policy.json','w');
-		ret = call(['bx','is','vpn-cn',self.gateway_id,self.id,'--json'],stdout=outf,stderr=outf);
-		if (ret != 0):
-			print("Failed to get current policy. Exiting");
-			exit(-1);
+                if  not os.path.exists('current_policy.json'):
+                    outf = open('current_policy.json','w');
+                    print('opened file current_policy.json for writing. outf:', outf);
+                    ret = call(['bx','is','vpn-cn',self.gateway_id,self.id,'--json'],stdout=outf,stderr=outf);
+                    if (ret != 0):
+                        print("Failed to get current policy. Exiting");
+                        exit(-1);
 
-		outf.close();
-		inf = open('current_policy.json','r');
-		arr = json.load(inf);
+                    outf.close();
 
-		# If current policies are set to Auto(IKEv2)/ Auto
-		# the ike_policy and ipsec_policy nodes are not seen,
-		# return None so that we continue to set a new policy.
+                inf = open('current_policy.json','r');
+                print('opened file current_policy.json for reading. inf:', inf);
+                arr = json.load(inf);
 
-		if "ike_policy" in arr:
-			current_ike_policy = arr["ike_policy"]["id"];
-		else:
-			current_ike_policy = None;
-		if "ipsec_policy" in arr:
-			current_ipsec_policy = arr["ipsec_policy"]["id"];
-		else:
-			current_ipsec_policy = None;
+                # If current policies are set to Auto(IKEv2)/ Auto
+                # the ike_policy and ipsec_policy nodes are not seen,
+                # return None so that we continue to set a new policy.
 
-		if (os.path.exists('current_policy.json')):
-			os.remove('current_policy.json');
+                if "ike_policy" in arr:
+                    current_ike_policy = arr["ike_policy"]["id"];
+                else:
+                    current_ike_policy = None;
+                if "ipsec_policy" in arr:
+                    current_ipsec_policy = arr["ipsec_policy"]["id"];
+                else:
+                    current_ipsec_policy = None;
 
-		return current_ike_policy,current_ipsec_policy;
+                inf.close();
+
+                if (os.path.exists('current_policy.json')):
+                    os.remove('current_policy.json');
+
+                return current_ike_policy,current_ipsec_policy;
         
 	def set_ike_policy(self,ike_policy):
 		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
@@ -175,7 +182,6 @@ class vpn_connection:
 
 class iperf3:
 	def __init__(self,optionlist):
-	#def __init__(self,optionlist,gw_info):
 		self.iperf_command = "/usr/bin/iperf3";
 		self.ifconfig_command = "/sbin/ifconfig";
 		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s"];
@@ -387,8 +393,6 @@ class iperf3:
 						outfile = current_policy + "_" + current_time + "_" + outfile;
 						outf = open(outfile,"w");
 						print('outfile: ',outfile);
-						#print('i value type: ',type(self.list_P[iP]));
-						#print('i value : ',self.list_P[iP]);
 						ret = call([self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
 									str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
 									str(self.list_t[it]),"--json"],stdout=outf,stderr=outf);
@@ -405,7 +409,6 @@ class iperf3:
 						print('avg send rate: ',send_rate,',avg receive rate: ',rcv_rate);
 						print('sleeping for ',self.sleep_time,' seconds.');
 						time.sleep(self.sleep_time);
-						#exit(-1);
 
         
 	def run_current_only(self,summ_f,vpn_c):
@@ -477,7 +480,8 @@ class iperf3:
 			vpn_c.set_policy(i,j);
 			self.run_core_loops(summ_f,i,j);
       
-	def execute_test(self,gw_info):
+	#def execute_test(self,gw_info):
+	def execute_test(self,gw_info,optionlist):
 		for k,v in self.option_map.items():
 			temp = self.switch_option(k);
 			if (k != "-c"): # for '-c' set the IP address directly.
@@ -499,7 +503,7 @@ class iperf3:
 		vpn_c.get_ipsec_policies();
 
 		current_time = time.strftime("%d-%m-%Y_%H-%M-%S");
-		self.run_path = "run_" + current_time;
+		self.run_path = "server_" + self.option_map["-c"] + "_run_" + current_time;
 		
 		# get inside the run folder
 		self.change_dir_in();
@@ -577,4 +581,4 @@ if __name__ == "__main__":
 	ipf3 = iperf3(optionlist);
 	ipf3.print_option_map();
 
-	ipf3.execute_test(gw_info);
+	ipf3.execute_test(gw_info,optionlist);
