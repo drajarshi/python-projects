@@ -1,3 +1,50 @@
+v0.2:
+The input to the run_ng_vpnaas.py script now has a modified config file which looks like:
+[
+{"client":"1.4.9.26",
+"server":"1.4.9.25",
+"client_config":"input_26_25.config"
+},
+{"client":"1.4.9.16",
+"server":"1.4.9.12",
+"client_config":"input_16_12.config"
+}
+]
+
+The revised format now allows the script to allow each client server pair to run independently.
+The associated configuration file for the client server pair must be available on the client 
+alongwith the iperf3_test.py in the home folder of the root user, in order to be executed.
+
+Further, the revised script now generates files of the following format:
+On the client:
+server_1.25.18.4_run_23-12-2019_03-35-38.tar.gz
+1.4.9.16_1.4.9.12_iperf3_test_client_23-12-2019_03-35-32.out
+1.4.9.16_vmstat_23-12-2019_03-35-32.out
+1.4.9.16_vmstat_23-12-2019_03-35-32.out
+where 1.25.18.4 in the first file is the internal IP address of the server side of the first
+connection. The tarball contains the run results.
+Similarly on the server:
+1.4.9.25_iperf3_server_22-12-2019_13-19-13.out
+1.4.9.25_vmstat_22-12-2019_13-24-56.out
+1.4.9.25_mpstat_22-12-2019_13-24-56.out
+
+Additionally, custom reports from the VPN gateways can also be obtained for vmstat and mpstat
+using the following script (in <<>>):
+<<
+import datetime
+import os
+
+if __name__ == "__main__":
+                current_time = datetime.datetime.utcnow().strftime("%d-%m-%Y_%H:%M:%S");
+                mpstat_file = current_time + "_mpstat.out";
+                vmstat_file = current_time + "_vmstat.out";
+
+                mpstat_command = "nohup mpstat -P ALL 2 > " + mpstat_file + " 2>&1 &";
+                os.system(mpstat_command);
+                vmstat_command = "nohup vmstat -t 2 > " + vmstat_file + " 2>&1 &";
+                os.system(vmstat_command);
+>>
+
 v0.1:
 This script allows specifying one or more pairs of client and server ips, either in a config file, 
 e.g. 
