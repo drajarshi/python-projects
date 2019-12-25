@@ -1,6 +1,47 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.5:
+The modified version allows running the test for both VPN as well as other (non-VPN) scenarios.
+In order to run for other scenarios,
+specify the input config file as:
+{
+"-e":5,
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[50]
+}
+
+Alternately, if the options need to be specified on the command line, then, the sequence to
+run a non-VPN scenario looks like this:
+# python3 iperf3_test.py
+Enter a space separated list of options for the iperf3 command
+
+-e 5 -c 10.245.128.4 -i 10 -t 60 -P 50
+Enter the purpose of using the iperf3 command: Options:VPN/Other
+Other
+
+the normal sequence of steps follows.
+....
+......
+
+To run a VPN Scenario by specifying options on the command line, the sequence looks like this:
+# python3 iperf3_test.py
+Enter a space separated list of options for the iperf3 command
+
+-e 5 -c 10.245.128.4 -i 10 -t 60 -P 50
+Enter the purpose of using the iperf3 command: Options:VPN/Other
+VPN
+Enter the VPN gateway and gateway connection ids separated by a space
+1234-56accdea-aeff-4321-6789-9876678954467112c 4321-abdc11234-ase1-0122-122a-aedd2dd1ee2f
+Enter the peer VPN gateway and gateway connection ids separated by a space
+1234-56accdea-aeff-4321-6789-9876678954467112c 4321-abdc11234-ase1-0122-122a-aedd2dd1eq23
+the normal sequence of steps follows.
+....
+......
+
+
 Version 0.4.1:
 Corrected form of input config file:
 {

@@ -1,3 +1,8 @@
+v0.5:
+The steps to install the bx command apply only if a VPN scenario is being executed using the script. Please see the README
+for details.
+The steps starting serial no. 5 are applicable for all scenarios.
+
 1.Ensure that the IBM cloud CLI is installed.
 # bx
 
