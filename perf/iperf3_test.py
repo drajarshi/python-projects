@@ -75,6 +75,9 @@ class vpn_connection:
 		ipsecs_outf.close();
 		self.get_policy_info(ipsec,self.ipsec_policies);
 
+	def disable_check_version(self):
+		ret = call(['bx','config','--check-version=false']);
+
 	def get_current_policy(self):
                 if  not os.path.exists('current_policy.json'):
                     outf = open('current_policy.json','w');
@@ -519,6 +522,7 @@ class iperf3:
 		# set up the vpn_connection object here.
 		if (gw_info):
 		    vpn_c = vpn_connection(gw_info);
+		    vpn_c.disable_check_version(); # Avoid upgrade messages in policy json output
 		    vpn_c.get_ike_policies();
 		    vpn_c.get_ipsec_policies();
 		else:
