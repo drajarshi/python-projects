@@ -1,5 +1,5 @@
 __author__ = "Rajarshi Das"
-__copyright__ = "Copyright (C) 2019 Rajarshi Das"
+__copyright__ = "Copyright (C) 2020 Rajarshi Das"
 
 import numpy as np
 from subprocess import call
@@ -12,6 +12,7 @@ import os
 import shutil
 import time
 import sys
+import errno
 
 # bx is login should be functional.
 class vpn_connection:
@@ -316,10 +317,22 @@ class iperf3:
 		s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
 
 		# use SIOCGIFADDR to fetch the net address.
-		netaddr = fcntl.ioctl(s.fileno(),
+                # IFNAMSIZ in if.h is 16 chars long
+		try:
+		    netaddr = fcntl.ioctl(s.fileno(),
 				0x8915,
 				struct.pack("256s",\
-				bytearray(ifname[:16],'utf-8'))); # IFNAMSIZ in if.h is 16 chars long
+				bytearray(ifname[:16],'utf-8')));
+		except OSError as e:
+		    if (e.errno == errno.ENODEV): # device 'ens3' not found. Try 'eth0'
+                        ifname = 'eth0';
+                        netaddr = fcntl.ioctl(s.fileno(),
+                            0x8915,
+                            struct.pack("256s",\
+                            bytearray(ifname[:16],'utf-8')));
+		    else:
+                        print("Unexpected OS Error. Exiting. ");
+                        exit(-1);
 
 		self.source_ip = socket.inet_ntoa(netaddr[20:24]);
 
