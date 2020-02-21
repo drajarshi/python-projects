@@ -1,6 +1,31 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.55:
+Modifications to the -P option have been included in this version. Previously, a user can
+specify -P in the configuration file as:
+-P: [1,10]
+This allows running at stream counts in the specified range split by the default interval
+which is 5.
+So, -P 1 and -P 6 would be lined up to run. 
+Alternately, specifying 
+-P: 5 
+would run at stream count of 5.
+In other words, it was possible to either run with a single count or a range of stream counts.
+The latest changes allow single and range based stream counts to be mixed.
+E.g.
+{
+"-e":5,
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5],[20,50]]
+}
+
+This configuration would line up runs at -P 5, -P 20, -P 25... upto -P 50.
+On the command line, the above can be specified as:
+-e 5 -c 10.245.128.4 -i 10 -t 60 -P [5] [20,50]
+
 Version 0.5:
 The modified version allows running the test for both VPN as well as other (non-VPN) scenarios.
 In order to run for other scenarios,

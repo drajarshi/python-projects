@@ -13,6 +13,7 @@ import shutil
 import time
 import sys
 import errno
+import ast
 
 # bx is login should be functional.
 class vpn_connection:
@@ -244,26 +245,66 @@ class iperf3:
 					print("Ignoring -p option. Will run with currently set policies only.\n");
 					continue;
 			elif ((optionlist[i] == "-t") or (optionlist[i] == "-i") or (optionlist[i] == "-P")): 
+				self.option_map[optionlist[i]] = [];
 				if (optionlist[i] == "-t"):
 					self.toption = True;
 				elif (optionlist[i] == "-i"):
 					self.ioption = True;
 				else:
 					self.Poption = True;
-				temp = [];
-				if ((i+2 < len(optionlist)) and (self.is_integer(optionlist[i+2]))): # check if we have the upper limit
-					j = int(optionlist[i+1]);
-					while(j <= int(optionlist[i+2])):
-						temp.append(j);
-						j += self.step;
-					self.option_map[optionlist[i]] = temp;
-				else:	# only one limit specified?
-					if ((i+1 < len(optionlist)) and (self.is_integer(optionlist[i+1]))):
-						temp.append(optionlist[i+1]);
-						self.option_map[optionlist[i]] = temp;
-					else: # no limits specified for the option
-						print("No limits specified for option ",optionlist[i]);
-						exit(-1);
+
+				option = optionlist[i];
+				if (isinstance(optionlist[i+1],str)):
+					optionlist[i+1] = ast.literal_eval(optionlist[i+1]);
+				if (isinstance(optionlist[i+1],list)): # one list found. 
+					self.set_options("type_list",option,optionlist[i+1]);
+					j = i+2;
+					# A '-' indicates the next option
+					while(j<len(optionlist) and\
+					("-" not in optionlist[j])): 
+						if (isinstance(optionlist[j],str)):
+							optionlist[j] = ast.literal_eval(optionlist[j]);
+						if (isinstance(optionlist[j],list)):#more lists?
+							self.set_options("type_list",option,optionlist[j]);
+						j += 1;
+					if ((j<len(optionlist)) and ("-" in optionlist[j])):
+						i = i+2; # set 'i' so as to start at the next option
+				elif (isinstance(optionlist[i+1],int)): # single range
+					self.set_options("type_int",option,optionlist[i+1]);
+					j = i+2;
+					if (j<len(optionlist) and isinstance(optionlist[j],int)): # If the upper limit exists, add it
+						self.set_options("type_int",option,optionlist[j]);
+
+        # common routine to set options esp. for -P
+	def set_options(self,optiontype,option,optionlist):
+		temp = [];
+
+		if (optiontype=="type_list"): # only -P
+			if ((len(optionlist)==2) and (self.is_integer(optionlist[1]))): # check if we have the upper limit
+				j = int(optionlist[0]);
+				while(j <= int(optionlist[1])):
+					temp.append(j);
+					j += self.step;
+				for j in temp:
+					if (option == "-P"):			
+						self.list_P.append(j);
+					else:
+						self.option_map[option].append(j);
+			else:	# only one limit specified?
+				if ((len(optionlist)==1) and (self.is_integer(optionlist[0]))):
+					temp.append(optionlist[0]);
+					for j in temp:
+						self.list_P.append(j);
+				else: # no limits specified for the option
+					print("No limits specified for option ",option);
+					exit(-1);
+		else: # type_int
+			if (option == "-P"):
+				temp.append(optionlist);
+				self.list_P.append(temp);
+			else: # '-t' or '-i'
+				temp.append(optionlist);
+				self.option_map[option] = temp;
 
 	# change directory to the folder specified
 	def change_dir_in(self):
@@ -531,6 +572,8 @@ class iperf3:
 		print('t:',self.list_t);
 		print('P:',self.list_P);
 		print('c:',self.list_c);
+
+		exit(-1);
 
 		# set up the vpn_connection object here.
 		if (gw_info):
