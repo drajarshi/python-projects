@@ -1,3 +1,55 @@
+v0.3:
+run_ng_vpnaas.py now allows additional options.
+The modified file now looks like this:
+[
+{"client":"1.4.9.26",
+"server":"1.4.9.25",
+"client_config":"input_26_25.config",
+"key_filename":"/path/to/ssh/key",
+"primary_vpn":"2.3.4.31",
+"peer_vpn":"2.4.3.12",
+"jumpbox":"3.2.1.41",
+"jumpbox_key_filename":"/path/to/jumpbox/file",
+"vpn_key_filename":"/path/to/vpn/key/file/from/jumpbox",
+"vpn_port":"2112",
+"client_user":"root",
+"server_user":"root",
+"vpn_user":"vpnadm",
+"jumpbox_user":"jumpboxadm"
+},
+{"client":"1.4.9.16",
+"server":"1.4.9.12",
+"client_config":"input_16_12.config",
+"key_filename":"/path/to/ssh/key",
+"primary_vpn":"2.3.4.31",
+"peer_vpn":"2.5.12.112",
+"jumpbox":"3.2.1.41",
+"jumpbox_key_filename":"/path/to/jumpbox/file",
+"vpn_key_filename":"/path/to/vpn/key/file/from/jumpbox",
+"vpn_port":"2110",
+"client_user":"root",
+"server_user":"root",
+"vpn_user":"vpnadm",
+"jumpbox_user":"jumpboxadm"
+}
+]
+
+The primary_vpn and the peer_vpn fields specify the IP addresses of the primary and
+peer vpn gateways of the connection to be used.
+The jumpbox field specifies the ip address of the jumpbox used to connect to the vpn
+gateways.
+The 'jumpbox_key_filename' specifies the key file used to connect to the jumpbox.
+the 'vpn_key_filename' specifies the key file used to connect to the primary and peer
+vpn gateways from the jumpbox.
+The 'vpn_port' is the special port number used to connect to the vpn gateways from the
+jumpbox.
+The client_user and the server_user specify the user ids used to connect to the client 
+and server respectively.
+The vpn_user is the user id used to connect to the vpn gateway from the jumpbox.
+The jumpbox_user is the user id used to connect to the jumpbox.
+Each such combination of configuration values can be specified for every pair of client
+server combinations being exercised.
+
 v0.21:
 run_np_vpnaas.py now allows defining the key filename containing the ssh key. The config
 file now looks like this:
