@@ -573,8 +573,6 @@ class iperf3:
 		print('P:',self.list_P);
 		print('c:',self.list_c);
 
-		exit(-1);
-
 		# set up the vpn_connection object here.
 		if (gw_info):
 		    vpn_c = vpn_connection(gw_info);
