@@ -187,7 +187,7 @@ class iperf3:
 	def __init__(self,optionlist):
 		self.iperf_command = "/usr/bin/iperf3";
 		self.ifconfig_command = "/sbin/ifconfig";
-		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s"];
+		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s","-b"];
 		self.coption = None;
 		self.ioption = None;
 		self.Poption = None;
@@ -210,6 +210,7 @@ class iperf3:
 		self.sleep_time = 10; # default sleep time between consecutive test runs
 		print("set default sleep time between consecutive runs to: ",self.sleep_time," seconds.");
 		self.run_mode = "vpn"; # run for vpn connections by default
+		self.bw_limit = "None"; # No bandwidth limit value (-b) by default
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
@@ -244,6 +245,9 @@ class iperf3:
 					print("Invalid parameter specified for -p or parameter missing.\n");
 					print("Ignoring -p option. Will run with currently set policies only.\n");
 					continue;
+			elif optionlist[i] == "-b":
+				self.bw_limit = optionlist[i+1];
+				continue;
 			elif ((optionlist[i] == "-t") or (optionlist[i] == "-i") or (optionlist[i] == "-P")): 
 				self.option_map[optionlist[i]] = [];
 				if (optionlist[i] == "-t"):
@@ -446,6 +450,9 @@ class iperf3:
 									"_to_" + str(self.list_c[ic]) + \
 									"_" + "P" + str(self.list_P[iP]) + "_" + "t" + \
 									str(self.list_t[it]);
+						if (self.bw_limit != "None"):
+							outfile_opt += "_" + "b" + str(self.bw_limit);
+
 						outfile = outfile_opt + ".json";
 						outfile = current_time + "_" + outfile;
 
@@ -454,9 +461,19 @@ class iperf3:
 
 						outf = open(outfile,"w");
 						print('outfile: ',outfile);
-						ret = call([self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
-									str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
-									str(self.list_t[it]),"--json"],stdout=outf,stderr=outf);
+						command_array = [self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
+										str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
+										str(self.list_t[it])];
+
+						# Add '-b' flag if specified
+						if (self.bw_limit != "None"):
+							command_array += ["-b",str(self.bw_limit)];
+
+						command_array += ["--json"];
+
+						print('command_array: ',command_array);
+
+						ret = call(command_array,stdout=outf,stderr=outf);
 						print("iperf call returned ",ret);
 
 						send_rate,rcv_rate = self.get_avg_bw(outfile);
@@ -665,6 +682,9 @@ if __name__ == "__main__":
 
                 print("Enter the peer VPN gateway and gateway connection ids separated by a space\n");
                 peer_gateway,peer_gateway_conn = input().split(' ');
+
+                gw_info['peer_gateway_id'] = peer_gateway;
+                gw_info['peer_gateway_connection_id'] = peer_gateway_conn;
 
 	ipf3 = iperf3(optionlist);
 	ipf3.print_option_map();

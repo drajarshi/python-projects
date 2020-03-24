@@ -1,6 +1,25 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.56:
+Added -b option to specify a bandwidth/ throughput limit. E.g.
+{
+"-e":5,
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5],[20,50]],
+"-p":"Current",
+"-b":"600M",
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+The above configuration sets a 600 MB limit on the throughput while running iperf3.
+The -b option can be specified on the command line as well alongwith other options.
+
 Version 0.55:
 Modifications to the -P option have been included in this version. Previously, a user can
 specify -P in the configuration file as:
