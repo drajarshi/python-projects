@@ -1,3 +1,10 @@
+v0.6:
+This version allows invoking either of iperf2 (iperf) and iperf3 as part of the run. Before invoking iperf2, ensure that it has
+been installed on the system.
+In order to install iperf (iperf2):
+# sudo apt-get update
+# sudo apt-get install iperf
+
 v0.5:
 The steps to install the bx command apply only if a VPN scenario is being executed using the script. Please see the README
 for details.

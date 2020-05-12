@@ -1,6 +1,59 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
 
+Version 0.6:
+Added -g option to specify whether to run iperf2 or iperf3.
+The configuration file now looks like:
+{
+"-g":"iperf2",
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5],[20,50]],
+"-p":"Current",
+"-b":"600M",
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+Note the additional '-g' option specified above.
+The above configuration file will result in running iperf2 for the test.
+The output file will be a .out file (instead of a .json) per run 
+combination. This is because iperf2 does not support json output.
+Note that specifying iperf2 as a parameter to -g assumes that iperf2 is 
+already installed in the system. 
+Refer prerequisites.txt for information on how to install iperf2.
+
+Further, if -g is specified on the command line, the corresponding 
+example would look like:
+-g iperf2 -c 10.245.128.4 -i 10 -t 60 -P [5] [20,50] -p Current -b 600M
+
+followed by the inputs to provide the gateway information as before.
+
+If a single parallel stream count is to be specified, then the command 
+line would look like:
+-g iperf2 -c 10.245.128.4 -i 10 -t 60 -P [5] -p Current -b 600M
+
+An equivalent configuration input file would look like:
+{
+"-g":"iperf2",
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5]],
+"-p":"Current",
+"-b":"600M",
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+Note the double square brackets for the parameter '5' for -P. 
+
+
 Version 0.56:
 Added -b option to specify a bandwidth/ throughput limit. E.g.
 {
