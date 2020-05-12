@@ -3,6 +3,9 @@ Refer prerequisites.txt in the same directory.
 
 Version 0.6:
 Added -g option to specify whether to run iperf2 or iperf3.
+The -g flag is optional. If it is not specified, the script
+defaults to iperf3.
+
 The configuration file now looks like:
 {
 "-g":"iperf2",
