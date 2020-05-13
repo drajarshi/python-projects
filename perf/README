@@ -1,5 +1,57 @@
 Prerequisites:
 Refer prerequisites.txt in the same directory.
+Version 0.7:
+Added -r option to allow iperf2 to run in bi-directional 
+mode.
+Added -R option to allow iperf3 to run in reverse mode
+(server behaving as client and vice versa).
+Both -r and -R are optional parameters.
+-R is applicable for iperf3 alone. 
+-r is applicable for iperf2 alone.
+The configuration file with this change for -r now looks like:
+{
+"-g":"iperf2",
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5],[20,50]],
+"-p":"Current",
+"-b":"600M",
+"-r":"",
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+Note that the '-r' field has a null value mapped to it in the configuration
+file.
+On the command line, the modified options look like this:
+-g iperf2 -c 10.244.0.4 -e 5 -i 2 -t 10 -P [3] -r
+
+Similarly for -R,
+the configuration file may look like:
+{
+"-g":"iperf3",
+"-c":"10.245.128.4",
+"-i":10,
+"-t":60,
+"-P":[[5],[20,50]],
+"-p":"Current",
+"-b":"600M",
+"-R":"",
+"gateway_id":"0737-45dc76cb-eadf-489e-853d-287554d7948c",
+"gateway_connection_id":"0737-f38e023b-b619-4abf-b058-8c575feff346",
+"peer_gateway_id":"0737-ea7b099a-5626-42f2-b817-54b39f0a621f",
+"peer_gateway_connection_id":"0737-1dacfd56-e5b4-4821-a2d9-20931fefc7f1"
+}
+
+Again note that -R is mapped to null.
+A command line invocation may look like:
+-g iperf3 -c 10.244.0.4 -i 2 -t 10 -p Current -P [5] -R
+
+Important note: Ensure that '-r' or '-R' (as applicable) is specified in 
+the configuration file MANDATORILY AFTER '-g' has been specified. 
 
 Version 0.6:
 Added -g option to specify whether to run iperf2 or iperf3.

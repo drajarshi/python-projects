@@ -188,10 +188,15 @@ class iperf:
 		self.iperf3_command = "/usr/bin/iperf3";
 		self.iperf2_command = "/usr/bin/iperf"; # iperf2
 		self.ifconfig_command = "/sbin/ifconfig";
-		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s","-b","-g"];
+		self.allowed_options = ["-e","-c","-i","-P","-t","-p","-s","-b","-g",\
+								"-r","-R"];
 		self.coption = None;
 		self.ioption = None;
 		self.Poption = None;
+		self.roption = None;
+		self.Roption = None;
+		self.rflag = "-r"; # iperf only
+		self.Rflag = "-R"; # iperf3 only
 		self.list_c = [];
 		self.list_P = [];
 		self.list_i = [];
@@ -216,7 +221,17 @@ class iperf:
 
       # prepare option map
 		for i in np.arange(0,len(optionlist)):
-			if optionlist[i] == "-g": # specify iperf command to invoke: iperf2/iperf3
+			if optionlist[i] == "-r": # bidirectional run. iperf only
+				if self.iperf_command == self.iperf3_command: 
+					print(optionlist[i]," is allowed with iperf only.");
+					exit(-1);
+				self.roption = True;
+			elif optionlist[i] == "-R": # reverse direction. iperf3 only
+				if self.iperf_command == self.iperf2_command:
+					print(optionlist[i]," is allowed with iperf3 only.");
+					exit(-1);
+				self.Roption = True;
+			elif optionlist[i] == "-g": # specify iperf command to invoke: iperf2/iperf3
 				self.option_map[optionlist[i]] = str(optionlist[i+1]);
 				if ((optionlist[i+1] == "iperf2") or\
 					(optionlist[i+1] == "iperf")):
@@ -470,8 +485,29 @@ class iperf:
 			print('duration:',duration);
 			total_duration = "0.0-" + duration;
 			f = open(outfile, 'r');
+			directions_complete = 0; # useful with roption set to True.
 			for line in f.readlines():
-				if (int(stream_count)==1): # With 1 stream, the [SUM] keyword isnt there
+				if (self.roption == True): # bidirectional.
+					if (int(stream_count)==1): # with roption set, [SUM] shows up
+												# but we choose to ignore it
+						if ((total_duration in line) and ('[SUM]' not in line)):
+							sent_rate_dir,rcv_rate_dir = self.get_avg_bw_iperf(line);
+							directions_complete += 1;
+							if (directions_complete == 1):
+								sent_rate = sent_rate_dir; # forward direction bw
+							elif (directions_complete == 2):
+								rcv_rate = sent_rate_dir; # reverse direction bw
+								break;
+					elif '[SUM]' in line: # stream count > 1
+						if total_duration in line: # total summation
+							sent_rate_dir,rcv_rate_dir = self.get_avg_bw_iperf(line);
+							directions_complete += 1;
+							if (directions_complete == 1):
+								sent_rate = sent_rate_dir; # forward direction bw
+							elif (directions_complete == 2):
+								rcv_rate = sent_rate_dir; # reverse direction bw
+								break;
+				elif (int(stream_count)==1): # With 1 stream, the [SUM] keyword isnt there
 					if total_duration in line:
 						sent_rate,rcv_rate = self.get_avg_bw_iperf(line);
 						break;
@@ -501,13 +537,19 @@ class iperf:
 						if (self.bw_limit != "None"):
 							outfile_opt += "_" + "b" + str(self.bw_limit);
 
+						if (self.roption == True):
+							outfile_opt += "_" + "r";
+						elif (self.Roption == True):
+							outfile_opt += "_" + "R";
+
 						# json output only with iperf3
 						if (self.iperf_command == self.iperf3_command):
 							outfile = outfile_opt + ".json";
 						else: # iperf2
 							outfile = outfile_opt + ".out";
 
-						outfile = current_time + "_" + outfile;
+						# include iperf command in file name
+						outfile = self.option_map["-g"] + "_" + current_time + "_" + outfile;
 
 						if (self.run_mode == "vpn"):
 						    outfile = current_policy + "_" + outfile;
@@ -517,6 +559,11 @@ class iperf:
 						command_array = [self.iperf_command,"-c",str(self.list_c[ic]),"-i",\
 										str(self.list_i[ii]),"-P",str(self.list_P[iP]),"-t",\
 										str(self.list_t[it])];
+
+						if (self.roption == True):
+							command_array.append(self.rflag);
+						elif (self.Roption == True):
+							command_array.append(self.Rflag);
 
 						# Add '-b' flag if specified
 						if (self.bw_limit != "None"):
@@ -535,9 +582,18 @@ class iperf:
 						else: # iperf2
 							send_rate,rcv_rate = self.get_avg_bw(outfile,str(self.list_P[iP]));
 
-						summary_line = current_time + "," + outfile_opt + "," + \
+						if ((self.iperf_command == self.iperf2_command) and\
+							(self.roption == True)):# iperf2 with -r
+							summary_line = current_time + "," + outfile_opt + "," + \
+								str(send_rate/pow(10,6)) + "," + str(send_rate/pow(10,6)) \
+								+ "," + str(rcv_rate/pow(10,6)) + "," + \
+								str(rcv_rate/pow(10,6)) + "," + outfile + "\n";
+						
+						else:
+							summary_line = current_time + "," + outfile_opt + "," + \
 								str(send_rate/pow(10,6)) + "," + str(rcv_rate/pow(10,6)) \
 										+ "," + outfile + "\n";
+
 						if (self.run_mode == "vpn"):
 						    summary_line = i['auth_algo'] + "," + i['encrypt_algo'] +\
 										"," + j['auth_algo'] + "," + j['encrypt_algo'] +\
@@ -667,10 +723,18 @@ class iperf:
 		summary_filename = "summary" + "_" + current_time + ".csv";
 		summ_f = open(summary_filename,'w');
 
+		if ((self.iperf_command == self.iperf2_command) and\
+			(self.roption == True)): # iperf2 with -r
+			base_header = "Start_time_of_run,Options_used,Average_send_BW (Mbits/s),Average_receive_BW (Mbits/s),Reverse_Average_send_BW (Mbits/s),Reverse_Average_receive_BW (Mbits/s),Detailed_output_filename\n";
+		elif ((self.iperf_command == self.iperf3_command) and\
+			(self.Roption == True)): # iperf3 with -R
+			base_header = "Start_time_of_run,Options_used,Reverse_Average_send_BW (Mbits/s),Reverse_Average_receive_BW (Mbits/s),Detailed_output_filename\n";
+		else:	
+			base_header = "Start_time_of_run,Options_used,Average_send_BW (Mbits/s),Average_receive_BW (Mbits/s),Detailed_output_filename\n";
 		if (gw_info):
-		    header = "IKE_auth_policy,IKE_encrypt_policy,IPSec_auth_policy,IPSec_encrypt_policy,Start_time_of_run,Options_used,Average_send_BW (Mbits/s),Average_receive_BW (Mbits/s),Detailed_output_filename\n";
+		    header = "IKE_auth_policy,IKE_encrypt_policy,IPSec_auth_policy,IPSec_encrypt_policy," + base_header;
 		else:
-		    header = "Start_time_of_run,Options_used,Average_send_BW (Mbits/s),Average_receive_BW (Mbits/s),Detailed_output_filename\n";
+		    header = base_header;
 
 		summary_line = "";
 
@@ -713,7 +777,8 @@ def get_config(input_file):
             if isinstance(data[k],list): # A list of values is mapped
                 for i in np.arange(0,len(data[k])):
                     optionlist.append(data[k][i]);
-            else:
+            elif data[k] != '': # do not append data[k] if its already null
+            #else:
                 optionlist.append(data[k]);
 
         return [optionlist,gw_info];
