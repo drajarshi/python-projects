@@ -1,0 +1,19 @@
+[
+	{
+		"server":"10.240.12.16",
+		"num_copies":"1",
+		"run_configuration": [
+			{
+			"test_type":"TCP_RR",
+			"test_parameters": [
+				{
+				"tx_pkt_size":"1000",
+				"rx_pkt_size":"1000"
+				}
+			],
+			"duration":"10"
+			}
+		]
+	}
+]
+
