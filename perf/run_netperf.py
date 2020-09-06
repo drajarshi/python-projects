@@ -2,6 +2,7 @@ __author__ = "Rajarshi Das"
 __copyright__ = "Copyright (C) 2020 Rajarshi Das"
 
 import numpy as np
+from threading import Thread
 from subprocess import call
 import time
 import json
@@ -646,23 +647,93 @@ def test_iperf3(option):
 def run_test(options):
 	return;
 
-class netperf: # one object per list entry
+class netperf: # one object per server IP address
     def __init__(self,optionlist):
         self.server = None;
         self.packet_size = None;
         self.type = None;
         self.duration = None;
+        self.netperf_command = "/usr/bin/netperf";
+        self.Hoption = False;
+        self.toption = False;
+        self.roption = False;
+        self.loption = False;
+        self.source_ip = None;
 
-    def parse_optionlist(self,optionlist):
-        for i in np.range(len(optionlist)):
+    def parse_configuration(self,optionlist):
+        for i in range(len(optionlist)):
             if (optionlist[i] == "-H"): # server address
+                self.Hoption = True;
                 self.server = optionlist[i+1];
             elif (optionlist[i] == "-t"): # test type
+                self.toption = True;
                 self.type = optionlist[i+1];
             elif (optionlist[i] == "-r"): # packet sizes
+                self.roption = True;
                 self.packet_size = optionlist[i+1];
             elif (optionlist[i] == "-l"): # duration
+                self.loption = True;
                 self.duration = optionlist[i+1];
+
+    def get_source_ip(self,ifname="ens3"):
+        s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
+
+        # use SIOCGIFADDR to fetch the net address.
+        # IFNAMSIZ in if.h is 16 chars long
+        try:
+            netaddr = fcntl.ioctl(s.fileno(),
+                        0x8915,
+                        struct.pack("256s",\
+                        bytearray(ifname[:16],'utf-8')));
+        except OSError as e:
+            if (e.errno == errno.ENODEV): # device 'ens3' not found. Try 'eth0'
+                ifname = 'eth0';
+                netaddr = fcntl.ioctl(s.fileno(),
+                    0x8915,
+                    struct.pack("256s",\
+                    bytearray(ifname[:16],'utf-8')));
+            else:
+                print("Unexpected OS Error. Exiting. ");
+                exit(-1);
+
+        self.source_ip = socket.inet_ntoa(netaddr[20:24]);
+
+    def prepare_command(self):
+        self.command = [self.netperf_command];
+        #Add global options
+        if (self.Hoption == True):
+            self.command += ["-H",str(self.server)];
+        else: # should never get here
+            print("no server address specified. Can not continue.");
+            exit(-1);
+
+        if (self.toption == True):
+            self.command += ["-t",str(self.type)];
+        else:
+            self.type = "TCP_RR"; # set TCP_RR as default
+            self.command += ["-t",str(self.type)];
+
+        if (self.loption == True):
+            self.command += ["-l",str(self.duration)];
+
+        self.command += ["--"];
+
+        #Add test specific options
+        if (self.roption == True):
+            self.command += ["-r",str(self.packet_size)];
+
+    def run_command(self):
+        self.get_source_ip();
+
+        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+
+        output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
+                str(self.server) + "_" + current_time + ".csv";
+
+        outf = open(output_filename,"w");
+
+        ret = call(self.command,stdout=outf,stderr=outf);
+        print("netperf call returned ", ret);
 
     def __del(self):
         self.server = None;
@@ -714,6 +785,12 @@ def get_config(input_file):
                             
     return client_server_pairs;
 
+def start_netperf(config_data):
+    np = netperf(config_data);
+    np.parse_configuration(config_data);
+    np.prepare_command();
+    np.run_command();
+
 if __name__ == "__main__":
     client_server_pairs = [];
 
@@ -729,5 +806,9 @@ if __name__ == "__main__":
             client_server_pairs.append(input().split(' '));
 
     print('client_server_pairs: ',client_server_pairs); # debug
+
+    for i in np.arange(0,len(client_server_pairs)):
+        run_thread = Thread(target=start_netperf,args=(client_server_pairs[i],));
+        run_thread.start();
 
     exit(-1);
