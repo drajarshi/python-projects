@@ -646,6 +646,30 @@ def test_iperf3(option):
 def run_test(options):
 	return;
 
+class netperf: # one object per list entry
+    def __init__(self,optionlist):
+        self.server = None;
+        self.packet_size = None;
+        self.type = None;
+        self.duration = None;
+
+    def parse_optionlist(self,optionlist):
+        for i in np.range(len(optionlist)):
+            if (optionlist[i] == "-H"): # server address
+                self.server = optionlist[i+1];
+            elif (optionlist[i] == "-t"): # test type
+                self.type = optionlist[i+1];
+            elif (optionlist[i] == "-r"): # packet sizes
+                self.packet_size = optionlist[i+1];
+            elif (optionlist[i] == "-l"): # duration
+                self.duration = optionlist[i+1];
+
+    def __del(self):
+        self.server = None;
+        self.packet_size = None;
+        self.type = None;
+        self.duration = None;
+
 def get_config(input_file):
     optionlist = [];
     
