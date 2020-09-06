@@ -659,6 +659,8 @@ class netperf: # one object per server IP address
         self.roption = False;
         self.loption = False;
         self.source_ip = None;
+        self.command = None;
+        self.command_string = "";
 
     def parse_configuration(self,optionlist):
         for i in range(len(optionlist)):
@@ -668,12 +670,22 @@ class netperf: # one object per server IP address
             elif (optionlist[i] == "-t"): # test type
                 self.toption = True;
                 self.type = optionlist[i+1];
+                if (self.command_string != None): # some option's already added
+                    self.command_string += "_";
+                self.command_string += "t" + "_" + str(self.type);
             elif (optionlist[i] == "-r"): # packet sizes
                 self.roption = True;
                 self.packet_size = optionlist[i+1];
+                tmp_pkt_size = self.packet_size.replace(",","_");
+                if (self.command_string != None): # some option's already added
+                    self.command_string += "_";
+                self.command_string += "r" + "_" + str(tmp_pkt_size);
             elif (optionlist[i] == "-l"): # duration
                 self.loption = True;
                 self.duration = optionlist[i+1];
+                if (self.command_string != None): # some option's already added
+                    self.command_string += "_";
+                self.command_string += "l" + "_" + str(self.duration);
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -728,7 +740,8 @@ class netperf: # one object per server IP address
         current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 
         output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
-                str(self.server) + "_" + current_time + ".csv";
+                str(self.server) + "_" + current_time + "_" + \
+                str(self.command_string) + ".csv";
 
         outf = open(output_filename,"w");
 
@@ -781,7 +794,8 @@ def get_config(input_file):
                                     if (key3 in config_kw_option_map): # e.g. packet_size_tx_rx
                                         optionlist.append(config_kw_option_map[key3]);
                                         optionlist.append(data3[key3]);
-        client_server_pairs.append(optionlist);
+        options = optionlist.copy();
+        client_server_pairs.append(options);
                             
     return client_server_pairs;
 
