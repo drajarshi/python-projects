@@ -15,6 +15,13 @@ import sys
 import errno
 import ast
 
+config_kw_option_map = {
+"server"    :       "-H",
+"duration"  :       "-l",
+"pkt_size_tx_rx":   "-r",
+"test_type":        "-t"
+}
+
 # bx is login should be functional.
 class vpn_connection:
 	def __init__(self,data):
@@ -640,53 +647,64 @@ def run_test(options):
 	return;
 
 def get_config(input_file):
-        inf = open(input_file,'r');
+    optionlist = [];
+    
+    inf = open(input_file,'r');
 
-        data = json.load(inf);
-        client_server_pairs = [];
-        for i in np.arange(0,len(data)):
-            if 'server' not in data[i]:
-                print("Server address missing in configuration file");
-                print("Exiting..");
-                exit(-1);
-            if 'run_configuration' not in data[i]:
-                print("run_configuration missing in configuration file");
-                print("setting defaults");
+    data = json.load(inf);
+    client_server_pairs = [];
+    server_address_count = 0;
 
-            server = data[i]["ser
+    for i in np.arange(0,len(data)):
+        for k in data[i]:
+            if k == "server":
+                server_address_count += 1;
+                break;
+    if (server_address_count < len(data)):
+        print("Server address missing for one or more entries in configuration file");
+        print("Exiting..");
+        exit(-1);
 
-            data[i]["server"]
-
-        for k in data:
-            if 'gateway' in k:
-                gw_info[k] = data[k];
-                continue;
-
-            optionlist.append(k);
-            if isinstance(data[k],list): # A list of values is mapped
-                for i in np.arange(0,len(data[k])):
-                    optionlist.append(data[k][i]);
-            else:
-                optionlist.append(data[k]);
-
-        return [optionlist,gw_info];
+    for i in np.arange(0,len(data)):
+        optionlist.clear();
+        for key in data[i]:
+            if (key in config_kw_option_map):
+                optionlist.append(config_kw_option_map(key));
+                optionlist.append(data[key]);
+            if isinstance(data[i][key],list): # e.g. key == run_configuration
+                for j in np.arange(0,len(data[i][key])):
+                    data2 = data[i][key][j];
+                    for key2 in data2:
+                        if (key2 in config_kw_option_map):
+                            optionlist.append(config_kw_option_map(key2));
+                            optionlist.append(data2[key2]);
+                        if isinstance(data2[key2],list): # e.g. key2 == test_parameters
+                            for k in np.arange(0,len(data2[key2])):
+                                data3 = data2[key2][k];
+                                for key3 in data3:
+                                    if (key3 in config_kw_option_map): # e.g. packet_size_tx_rx
+                                        optionlist.append(config_kw_option_map(key3));
+                                        optionlist.append(data3[key3]);
+        client_server_pairs.append(optionlist);
+                            
+    return [client_server_pairs];
 
 if __name__ == "__main__":
 #	test_iperf3("-h");
-	optionlist = []
-	gw_info = {}
-        client_server_pairs = [];
+    optionlist = [];
+    client_server_pairs = [];
 
-	if (len(sys.argv) == 2):
-	   client_server_pairs = get_config(sys.argv[1]);
-	else:
-            print("Specify the number of parallel runs of netperf");
-            num_combinations = input();
-            for(i=0;i<num_combinations;i++) {
-	        print("Enter a space separated list of options for the netperf command\n");
-                print("Ensure that -H <server address> is specified at a minimum.\n");
-	        optionlist = input().split(' ');
+    if (len(sys.argv) == 2):
+        client_server_pairs = get_config(sys.argv[1]);
+    else:
+        print("Specify the number of parallel runs of netperf");
+        num_combinations = input();
+        for i in range(num_combinations):
+            optionlist.clear();
+            print("Enter a space separated list of options for the netperf command\n");
+            print("Ensure that -H <server address> is specified at a minimum.\n");
+            optionlist = input().split(' ');
 
-                client_server_pairs.append(optionlist);
-            }
+            client_server_pairs.append(optionlist);
 
+        exit(-1);
