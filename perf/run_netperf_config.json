@@ -4,13 +4,13 @@
 		"num_copies":"1",
 		"run_configuration": [
 			{
-			"test_type":"TCP_RR",
-			"test_parameters": [
-                {
-                "pkt_size_tx_rx":[1000,1000]
-                }
-			],
-			"duration":"10"
+				"test_type":"TCP_RR",
+				"test_parameters": [
+					{
+					"pkt_size_tx_rx":"[1000,1000]"
+					}
+				],
+				"duration":"10"
 			}
 		]
 	}

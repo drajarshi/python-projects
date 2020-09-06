@@ -669,42 +669,41 @@ def get_config(input_file):
         optionlist.clear();
         for key in data[i]:
             if (key in config_kw_option_map):
-                optionlist.append(config_kw_option_map(key));
-                optionlist.append(data[key]);
+                optionlist.append(config_kw_option_map[key]);
+                #print('key:',key,' data[key]:',data[i][key]); # debug
+                optionlist.append(data[i][key]);
             if isinstance(data[i][key],list): # e.g. key == run_configuration
                 for j in np.arange(0,len(data[i][key])):
                     data2 = data[i][key][j];
                     for key2 in data2:
                         if (key2 in config_kw_option_map):
-                            optionlist.append(config_kw_option_map(key2));
+                            optionlist.append(config_kw_option_map[key2]);
                             optionlist.append(data2[key2]);
                         if isinstance(data2[key2],list): # e.g. key2 == test_parameters
                             for k in np.arange(0,len(data2[key2])):
                                 data3 = data2[key2][k];
                                 for key3 in data3:
                                     if (key3 in config_kw_option_map): # e.g. packet_size_tx_rx
-                                        optionlist.append(config_kw_option_map(key3));
+                                        optionlist.append(config_kw_option_map[key3]);
                                         optionlist.append(data3[key3]);
         client_server_pairs.append(optionlist);
                             
-    return [client_server_pairs];
+    return client_server_pairs;
 
 if __name__ == "__main__":
-#	test_iperf3("-h");
-    optionlist = [];
     client_server_pairs = [];
 
     if (len(sys.argv) == 2):
         client_server_pairs = get_config(sys.argv[1]);
     else:
         print("Specify the number of parallel runs of netperf");
-        num_combinations = input();
+        num_combinations = int(input());
         for i in range(num_combinations):
-            optionlist.clear();
-            print("Enter a space separated list of options for the netperf command\n");
-            print("Ensure that -H <server address> is specified at a minimum.\n");
-            optionlist = input().split(' ');
+            print("Enter a space separated list of options for the netperf command");
+            print("Ensure that -H <server address> is specified at a minimum.");
 
-            client_server_pairs.append(optionlist);
+            client_server_pairs.append(input().split(' '));
 
-        exit(-1);
+    print('client_server_pairs: ',client_server_pairs); # debug
+
+    exit(-1);
