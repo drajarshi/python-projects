@@ -24,174 +24,6 @@ config_kw_option_map = {
 "num_copies":       "-z"
 }
 
-# bx is login should be functional.
-class vpn_connection:
-	def __init__(self,data):
-		self.local_cidrs = None;
-		self.remote_cidrs = None;
-		self.ike_policy_id = None;
-		self.ipsec_policy_id = None;
-		self.id = data['gateway_connection_id'];
-		self.gateway_id = data['gateway_id'];
-		self.peer_id = data['peer_gateway_connection_id'];
-		self.peer_gateway_id = data['peer_gateway_id'];
-		self.ike_policies = []; # all policies are for the VPC not the connection.
-		self.ipsec_policies = []; 
-		#self.lock = Lock();
-
-	def get_policy_info(self,what,policy_list):
-		ike = 0;
-		ipsec = 1;
-
-		if (what == ipsec):
-			f = open('ipsecs.json','r');
-		else: #ike
-			f = open('ikes.json','r');
-
-		arr = json.load(f);
-
-		for i in np.arange(0,len(arr)):
-			policy_map = {'id':arr[i]['id'],
-			'auth_algo':arr[i]['authentication_algorithm'],
-			'encrypt_algo':arr[i]['encryption_algorithm']
-			};
-
-			policy_list.append(policy_map);
-	
-	def get_ike_policies(self):
-		ike = 0;
-		ikes_outf = open('ikes.json','w');
-		ikes_errf = open('ikes_err.json','w');
-		ret = call(['bx','is','ike-policies','--json'],stdout=ikes_outf,stderr=ikes_errf);
-		if (ret != 0):
-			print("could not get ike policies. Exiting.");
-			exit(-1);
-	
-		ikes_errf.close();
-		ikes_outf.close();
-		self.get_policy_info(ike,self.ike_policies);
-
-	def get_ipsec_policies(self):
-		ipsec = 1;
-		ipsec_policies = [];
-
-		ipsecs_outf = open('ipsecs.json','w');
-		ipsecs_errf = open('ipsecs_err.json','w');
-		ret = call(['bx','is','ipsec-policies','--json'],stdout=ipsecs_outf,stderr=ipsecs_errf);
-		if (ret != 0):
-			print("could not get ipsec policies. Exiting");
-			exit(-1);
-		
-		ipsecs_errf.close();
-		ipsecs_outf.close();
-		self.get_policy_info(ipsec,self.ipsec_policies);
-
-	def disable_check_version(self):
-		ret = call(['bx','config','--check-version=false']);
-
-	def get_current_policy(self):
-                if  not os.path.exists('current_policy.json'):
-                    outf = open('current_policy.json','w');
-                    ret = call(['bx','is','vpn-cn',self.gateway_id,self.id,'--json'],stdout=outf,stderr=outf);
-                    if (ret != 0):
-                        print("Failed to get current policy. Exiting");
-                        exit(-1);
-
-                    outf.close();
-
-                inf = open('current_policy.json','r');
-                arr = json.load(inf);
-
-                # If current policies are set to Auto(IKEv2)/ Auto
-                # the ike_policy and ipsec_policy nodes are not seen,
-                # return None so that we continue to set a new policy.
-
-                if "ike_policy" in arr:
-                    current_ike_policy = arr["ike_policy"]["id"];
-                else:
-                    current_ike_policy = None;
-                if "ipsec_policy" in arr:
-                    current_ipsec_policy = arr["ipsec_policy"]["id"];
-                else:
-                    current_ipsec_policy = None;
-
-                inf.close();
-
-                if (os.path.exists('current_policy.json')):
-                    os.remove('current_policy.json');
-
-                return current_ike_policy,current_ipsec_policy;
-        
-	def set_ike_policy(self,ike_policy):
-		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
-		print('current policy: IKE: ', curr_ike_policy_id);
-
-		if (curr_ike_policy_id == ike_policy["id"]):
-			print("Policy with ike ", ike_policy, " already set. ");
-			return;
-			
-		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id']]);
-		if (ret != 0):
-			print("failed to set ike policy. Exiting\n");
-			exit(-1);
-
-		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ike-policy',ike_policy['id']]);
-		if (ret != 0):
-			print("failed to set ike policy on peer gw. Exiting\n");
-			exit(-1);
-
-		self.ike_policy_id = ike_policy['id'];
-
-		print('set ike policy to auth:',ike_policy['auth_algo'], ' and encrypt:', ike_policy['encrypt_algo']);
-                
-	def set_ipsec_policy(self,ipsec_policy):
-		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
-		print('current policy: IPSec: ', curr_ipsec_policy_id);
-
-		if (curr_ipsec_policy_id == ipsec_policy["id"]):
-			print("Policy with ipsec ", ipsec_policy, " already set. ");
-			return;
-		
-		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ipsec-policy',ipsec_policy['id']]);
-		if (ret != 0):
-			print("failed to set ipsec policy. Exiting\n");
-			exit(-1);
-
-		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ipsec-policy',ipsec_policy['id']]);
-		if (ret != 0):
-			print("failed to set ipsec policy on peer gw. Exiting\n");
-			exit(-1);
-
-		self.ipsec_policy_id = ipsec_policy['id'];
-
-		print('set ipsec policy to auth:',ipsec_policy['auth_algo'], ' and encrypt:', ipsec_policy['encrypt_algo']);
-
-	def set_policy(self,ike_policy,ipsec_policy):
-		# First check the currently set ike_policy and ipsec_policy.
-		# If they match what we are trying to set, return.
-		curr_ike_policy_id,curr_ipsec_policy_id = self.get_current_policy();
-		print('current policy: IKE: ', curr_ike_policy_id, ' IPSec: ', curr_ipsec_policy_id);
-
-		if ((curr_ike_policy_id == ike_policy["id"]) and (curr_ipsec_policy_id == ipsec_policy["id"])):
-			print("Policy with ike ", ike_policy, " and ipsec ", ipsec_policy, " already set. ");
-			return;
-		
-		ret = call(['bx','is','vpn-cnu',self.gateway_id,self.id,'--ike-policy',ike_policy['id'],'--ipsec-policy',ipsec_policy['id']]);
-		if (ret != 0):
-			print("failed to set ike and ipsec policies. Exiting\n");
-			exit(-1);
-
-		ret = call(['bx','is','vpn-cnu',self.peer_gateway_id,self.peer_id,'--ike-policy',ike_policy['id'],'--ipsec-policy',ipsec_policy['id']]);
-		if (ret != 0):
-			print("failed to set ike and ipsec policies on peer gw. Exiting\n");
-			exit(-1);
-
-		self.ike_policy_id = ike_policy['id'];
-		self.ipsec_policy_id = ipsec_policy['id'];
-
-		print('set ike policy to auth:',ike_policy['auth_algo'], ' and encrypt:', ike_policy['encrypt_algo']);
-		print('set ipsec policy to auth:',ipsec_policy['auth_algo'], ' and encrypt:', ipsec_policy['encrypt_algo']);
-
 class netperf:
 	def __init__(self,optionlist):
 		self.netperf_command = "/usr/bin/netperf";
@@ -773,13 +605,12 @@ class netperf: # one object per server IP address
 
             cmd_copy = cmd.copy();
             self.commands.append(cmd_copy);
-            cmd_string_copy = cmd_string.copy();
-            self.command_strings.append(cmd_string_copy);
+            self.command_strings.append(cmd_string);
 
     def run_commands(self):
         self.get_source_ip();
 
-        for i in range(self.packet_sizes):
+        for i in range(len(self.packet_sizes)):
             current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 
             output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
