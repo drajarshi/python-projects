@@ -7,7 +7,7 @@
 				"test_type":"TCP_RR",
 				"test_parameters": [
 					{
-					"pkt_size_tx_rx":"1000,1000"
+					"pkt_size_tx_rx":[[1000,1000],[2000,2000]]
 					}
 				],
 				"duration":"10"
@@ -22,7 +22,7 @@
 				"test_type":"TCP_RR",
 				"test_parameters": [
 					{
-					"pkt_size_tx_rx":"10000,10000"
+					"pkt_size_tx_rx":[[10000,10000]]
 					}
 				],
 				"duration":"15"

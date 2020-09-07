@@ -20,7 +20,8 @@ config_kw_option_map = {
 "server"    :       "-H",
 "duration"  :       "-l",
 "pkt_size_tx_rx":   "-r",
-"test_type":        "-t"
+"test_type":        "-t",
+"num_copies":       "-z"
 }
 
 # bx is login should be functional.
@@ -650,7 +651,7 @@ def run_test(options):
 class netperf: # one object per server IP address
     def __init__(self,optionlist):
         self.server = None;
-        self.packet_size = None;
+        #self.packet_size = None;
         self.type = None;
         self.duration = None;
         self.netperf_command = "/usr/bin/netperf";
@@ -658,11 +659,29 @@ class netperf: # one object per server IP address
         self.toption = False;
         self.roption = False;
         self.loption = False;
+        self.zoption = False;
         self.source_ip = None;
-        self.command = None;
-        self.command_string = "";
+        #self.command = None;
+        #self.command_string = "";
+        self.packet_sizes = "";
+        self.commands = [];
+        self.command_strings = [];
+
+    def get_packet_sizes(self,packet_size_array):
+        size_string_array = []
+
+        for i in range(len(packet_size_array)):
+            print(packet_size_array[i]);
+            tmp_size = "";
+            tmp_size = str(packet_size_array[i][0]) + "," + \
+                    str(packet_size_array[i][1]);
+            size_string_array.append(tmp_size);
+
+        return size_string_array;
 
     def parse_configuration(self,optionlist):
+        packet_sizes = []
+
         for i in range(len(optionlist)):
             if (optionlist[i] == "-H"): # server address
                 self.Hoption = True;
@@ -670,22 +689,24 @@ class netperf: # one object per server IP address
             elif (optionlist[i] == "-t"): # test type
                 self.toption = True;
                 self.type = optionlist[i+1];
-                if (self.command_string != None): # some option's already added
-                    self.command_string += "_";
-                self.command_string += "t" + "_" + str(self.type);
+                #if (self.command_string != None): # some option's already added
+                #    self.command_string += "_";
+                #self.command_string += "t" + str(self.type);
             elif (optionlist[i] == "-r"): # packet sizes
                 self.roption = True;
-                self.packet_size = optionlist[i+1];
-                tmp_pkt_size = self.packet_size.replace(",","_");
-                if (self.command_string != None): # some option's already added
-                    self.command_string += "_";
-                self.command_string += "r" + "_" + str(tmp_pkt_size);
+                if (isinstance(optionlist[i+1],list)):
+                    self.packet_sizes = self.get_packet_sizes(optionlist[i+1]);
+                #self.packet_size = optionlist[i+1];
+                #tmp_pkt_size = self.packet_size.replace(",","_");
+                #if (self.command_string != None): # some option's already added
+                #    self.command_string += "_";
+                #self.command_string += "r" + str(tmp_pkt_size);
             elif (optionlist[i] == "-l"): # duration
                 self.loption = True;
                 self.duration = optionlist[i+1];
-                if (self.command_string != None): # some option's already added
-                    self.command_string += "_";
-                self.command_string += "l" + "_" + str(self.duration);
+                #if (self.command_string != None): # some option's already added
+                #    self.command_string += "_";
+                #self.command_string += "l" + str(self.duration);
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -710,47 +731,70 @@ class netperf: # one object per server IP address
 
         self.source_ip = socket.inet_ntoa(netaddr[20:24]);
 
-    def prepare_command(self):
-        self.command = [self.netperf_command];
-        #Add global options
-        if (self.Hoption == True):
-            self.command += ["-H",str(self.server)];
-        else: # should never get here
-            print("no server address specified. Can not continue.");
-            exit(-1);
+    def prepare_commands(self):
+        for i in range(len(self.packet_sizes)):
+            cmd = [];
+            cmd_string = "";
+            cmd = [self.netperf_command];
+            #Add global options
+            if (self.Hoption == True):
+                cmd += ["-H",str(self.server)];
+            else: # should never get here
+                print("no server address specified. Can not continue.");
+                exit(-1);
 
-        if (self.toption == True):
-            self.command += ["-t",str(self.type)];
-        else:
-            self.type = "TCP_RR"; # set TCP_RR as default
-            self.command += ["-t",str(self.type)];
+            if (self.toption == True):
+                cmd += ["-t",str(self.type)];
+                if (cmd_string != ""): # some option's already added
+                    cmd_string += "_";
+                cmd_string += "t" + str(self.type);
+            else:
+                self.type = "TCP_RR"; # set TCP_RR as default
+                cmd += ["-t",str(self.type)];
+                if (cmd_string != ""): # some option's already added
+                    cmd_string += "_";
+                cmd_string += "t" + str(self.type);
 
-        if (self.loption == True):
-            self.command += ["-l",str(self.duration)];
+            if (self.loption == True):
+                cmd += ["-l",str(self.duration)];
+                if (cmd_string != ""): # some option's already added
+                    cmd_string += "_";
+                cmd_string += "l" + str(self.duration);
 
-        self.command += ["--"];
+            cmd += ["--"];
 
-        #Add test specific options
-        if (self.roption == True):
-            self.command += ["-r",str(self.packet_size)];
+            #Add test specific options
+            if (self.roption == True):
+                cmd += ["-r",str(self.packet_sizes[i])];
+                if (cmd_string != ""): # some option's already added
+                    cmd_string += "_";
+                tmp_pkt_size = self.packet_sizes[i].replace(",","_");
+                cmd_string += "r" + str(tmp_pkt_size);
 
-    def run_command(self):
+            cmd_copy = cmd.copy();
+            self.commands.append(cmd_copy);
+            cmd_string_copy = cmd_string.copy();
+            self.command_strings.append(cmd_string_copy);
+
+    def run_commands(self):
         self.get_source_ip();
 
-        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+        for i in range(self.packet_sizes):
+            current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 
-        output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
+            output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
                 str(self.server) + "_" + current_time + "_" + \
-                str(self.command_string) + ".csv";
+                str(self.command_strings[i]) + ".csv";
 
-        outf = open(output_filename,"w");
+            outf = open(output_filename,"w");
 
-        ret = call(self.command,stdout=outf,stderr=outf);
-        print("netperf call returned ", ret);
+            ret = call(self.commands[i],stdout=outf,stderr=outf);
+            print("netperf call returned ", ret);
+            outf.close();
 
     def __del(self):
         self.server = None;
-        self.packet_size = None;
+        self.packet_sizes = None;
         self.type = None;
         self.duration = None;
 
@@ -802,8 +846,8 @@ def get_config(input_file):
 def start_netperf(config_data):
     np = netperf(config_data);
     np.parse_configuration(config_data);
-    np.prepare_command();
-    np.run_command();
+    np.prepare_commands();
+    np.run_commands();
 
 if __name__ == "__main__":
     client_server_pairs = [];
