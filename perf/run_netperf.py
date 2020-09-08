@@ -10,11 +10,11 @@ import fcntl
 import struct
 import socket
 import os
-import shutil
 import time
 import sys
 import errno
 import ast
+import random
 
 config_kw_option_map = {
 "server"    :       "-H",
@@ -154,11 +154,38 @@ class netperf: # one object per server IP address
             self.commands.append(cmd_copy);
             self.command_strings.append(cmd_string);
 
-    def run_commands(self):
+    def run_commands(self,output_fields):
         self.get_source_ip();
+
+        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+
+        result_summary_file = "netperf_summary_" + str(random.randint(0,100))\
+                + "_" + str(self.source_ip) + "_to_" + str(self.server) + "_" \
+                + current_time + ".csv";
+
+        resultf = open(result_summary_file,"w");
+        header = "start_time,end_time";
+
+        if (self.toption == True):
+            header += ",test_type";
+        if (self.t_roption == True):
+            header += ",packet_size(tx:rx)";
+        if (self.loption == True):
+            header += ",duration(seconds)";
+
+        for i in range(len(output_fields)):
+            header += "," + output_fields[i];
+            if "latency" in output_fields[i]:
+                header += "(microseconds)";
+            elif "transaction_rate" in output_fields[i]:
+                header += "(trans/sec)";
+
+        header += "\n";
+        resultf.write(header);
 
         for i in range(len(self.packet_sizes)):
             current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+            start_time = current_time;
 
             output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
                 str(self.server) + "_" + current_time + "_" + \
@@ -167,8 +194,32 @@ class netperf: # one object per server IP address
             outf = open(output_filename,"w");
 
             ret = call(self.commands[i],stdout=outf,stderr=outf);
+            end_time = time.strftime("%d-%m-%Y_%H:%M:%S");
             print("netperf call returned ", ret);
             outf.close();
+
+            outf = open(output_filename,"r");
+
+            lines_read = 0;
+            #resultf.write("\n");
+            result_line = start_time + "," + end_time;
+            if (self.toption == True):
+                result_line += "," + self.type;
+            if (self.t_roption == True):
+                result_line += "," + self.packet_sizes[i];
+            if (self.loption == True):
+                result_line += "," + self.duration;
+
+            for line in outf.readlines():
+                lines_read += 1;
+                if (lines_read == 3):
+                    result_line += "," + line; # third line has data
+                    resultf.write(result_line);
+                    break;
+
+            outf.close();
+
+        resultf.close();
 
     def __del(self):
         self.server = None;
@@ -232,7 +283,7 @@ def start_netperf(config_data,output_fields):
     np = netperf(config_data);
     np.parse_configuration(config_data);
     np.prepare_commands(output_fields);
-    np.run_commands();
+    np.run_commands(output_fields);
 
 if __name__ == "__main__":
     client_server_pairs = [];
