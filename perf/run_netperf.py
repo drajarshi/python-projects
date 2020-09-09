@@ -33,8 +33,8 @@ class netperf: # one object per server IP address
         self.netperf_command = "/usr/bin/netperf";
         self.Hoption = False;
         self.toption = False;
-        self.t_roption = False;
-        self.loption = False;
+        self.t_roption = False; # t_ is a test option
+        self.t_loption = False;
         self.zoption = False;
         self.source_ip = None;
         self.packet_sizes = "";
@@ -76,7 +76,7 @@ class netperf: # one object per server IP address
                             string. Exiting.");
                     exit(-1);
             elif (optionlist[i] == "-l"): # duration
-                self.loption = True;
+                self.t_loption = True;
                 self.duration = optionlist[i+1];
             elif (optionlist[i] == "-y"): # sleep time between consecutive runs
                 self.inter_run_sleep = int(optionlist[i+1]);
@@ -134,7 +134,7 @@ class netperf: # one object per server IP address
                     cmd_string += "_";
                 cmd_string += "t" + str(self.type);
 
-            if (self.loption == True):
+            if (self.t_loption == True):
                 cmd += ["-l",str(self.duration)];
                 if (cmd_string != ""): # some option's already added
                     cmd_string += "_";
@@ -143,7 +143,7 @@ class netperf: # one object per server IP address
             cmd += ["--"];
 
             #Add test specific options
-            if (self.roption == True):
+            if (self.t_roption == True):
                 cmd += ["-r",str(self.packet_sizes[i])];
                 if (cmd_string != ""): # some option's already added
                     cmd_string += "_";
@@ -174,7 +174,7 @@ class netperf: # one object per server IP address
             header += ",test_type";
         if (self.t_roption == True):
             header += ",packet_size(tx:rx)";
-        if (self.loption == True):
+        if (self.t_loption == True):
             header += ",duration(seconds)";
 
         for i in range(len(output_fields)):
@@ -211,7 +211,7 @@ class netperf: # one object per server IP address
                 result_line += "," + self.type;
             if (self.t_roption == True):
                 result_line += "," + self.packet_sizes[i];
-            if (self.loption == True):
+            if (self.t_loption == True):
                 result_line += "," + self.duration;
 
             for line in outf.readlines():
