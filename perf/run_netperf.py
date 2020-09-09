@@ -25,7 +25,7 @@ config_kw_option_map = {
 "inter_run_sleep":  "-y"
 }
 
-class netperf: # one object per server IP address
+class netperf: # one object per server IP address in the config
     def __init__(self,optionlist):
         self.server = None;
         self.type = None;
@@ -35,12 +35,13 @@ class netperf: # one object per server IP address
         self.toption = False;
         self.t_roption = False; # t_ is a test option
         self.t_loption = False;
-        self.zoption = False;
+        self.s_zoption = False; # s_ is a (this) script specific option
         self.source_ip = None;
         self.packet_sizes = "";
         self.commands = [];
         self.command_strings = [];
         self.inter_run_sleep = 2; # default sleep time b/w iterations
+        self.num_copies = 1; # default number of copies to run per configuration
 
     def get_packet_sizes(self,packet_size_array):
         size_string_array = []
@@ -80,6 +81,9 @@ class netperf: # one object per server IP address
                 self.duration = optionlist[i+1];
             elif (optionlist[i] == "-y"): # sleep time between consecutive runs
                 self.inter_run_sleep = int(optionlist[i+1]);
+            elif (optionlist[i] == "-z"):
+                self.s_zoption = True;
+                self.num_copies = int(optionlist[i+1]);
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -158,40 +162,13 @@ class netperf: # one object per server IP address
             self.commands.append(cmd_copy);
             self.command_strings.append(cmd_string);
 
-    def run_commands(self,output_fields):
-        self.get_source_ip();
-
-        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
-
-        result_summary_file = "netperf_summary_" + str(random.randint(0,100))\
-                + "_" + str(self.source_ip) + "_to_" + str(self.server) + "_" \
-                + current_time + ".csv";
-
-        resultf = open(result_summary_file,"w");
-        header = "start_time,end_time";
-
-        if (self.toption == True):
-            header += ",test_type";
-        if (self.t_roption == True):
-            header += ",packet_size_tx(bytes),packet_size_rx(bytes)";
-        if (self.t_loption == True):
-            header += ",duration(seconds)";
-
-        for i in range(len(output_fields)):
-            header += "," + output_fields[i];
-            if "latency" in output_fields[i]:
-                header += "(microseconds)";
-            elif "transaction_rate" in output_fields[i]:
-                header += "(trans/sec)";
-
-        header += "\n";
-        resultf.write(header);
-
+    def run_command_core(self,resultf):
         for i in range(len(self.packet_sizes)):
             current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
             start_time = current_time;
 
-            output_filename = "netperf_" + str(self.source_ip) + "_to_" + \
+            output_filename = "netperf_" + str(random.randint(0,100)) + "_" \
+                + str(self.source_ip) + "_to_" + \
                 str(self.server) + "_" + current_time + "_" + \
                 str(self.command_strings[i]) + ".csv";
 
@@ -227,7 +204,51 @@ class netperf: # one object per server IP address
                 print("sleeping for ",self.inter_run_sleep," seconds");
                 time.sleep(self.inter_run_sleep);
 
-        resultf.close();
+    def run_commands(self,output_fields):
+        self.get_source_ip();
+
+        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+
+        result_summary_file = "netperf_summary_" + str(random.randint(0,100))\
+                + "_" + str(self.source_ip) + "_to_" + str(self.server) + "_" \
+                + current_time + ".csv";
+
+        resultf = open(result_summary_file,"w");
+        header = "start_time,end_time";
+
+        if (self.toption == True):
+            header += ",test_type";
+        if (self.t_roption == True):
+            header += ",packet_size_tx(bytes),packet_size_rx(bytes)";
+        if (self.t_loption == True):
+            header += ",duration(seconds)";
+
+        for i in range(len(output_fields)):
+            header += "," + output_fields[i];
+            if "latency" in output_fields[i]:
+                header += "(microseconds)";
+            elif "transaction_rate" in output_fields[i]:
+                header += "(trans/sec)";
+
+        header += "\n";
+        resultf.write(header);
+
+        # if we need more than one copy to start simultaneously, spawn threads
+        if (self.num_copies > 1):
+            th_core = []
+
+            for i in range(self.num_copies):
+                th_core.append(Thread(target=self.run_command_core,\
+                        args=(resultf,)));
+                th_core[i].start();
+
+            for i in range(self.num_copies):
+                th_core[i].join();
+            
+            resultf.close();
+        else:
+            self.run_command_core(resultf);
+            resultf.close();
 
     def __del(self):
         self.server = None;
@@ -252,7 +273,8 @@ def get_config(input_file):
                 server_address_count += 1;
                 break;
     if (server_address_count < len(data)):
-        print("Server address missing for one or more entries in configuration file");
+        print("Server address missing for one or more entries \
+                in configuration file");
         print("Exiting..");
         exit(-1);
 
@@ -275,7 +297,8 @@ def get_config(input_file):
                                 data3 = data2[key2][k];
                                 for key3 in data3:
                                     if (key3 in config_kw_option_map): # e.g. packet_size_tx_rx
-                                        optionlist.append(config_kw_option_map[key3]);
+                                        optionlist.append(\
+                                                config_kw_option_map[key3]);
                                         optionlist.append(data3[key3]);
         options = optionlist.copy();
         client_server_pairs.append(options);
@@ -305,7 +328,8 @@ if __name__ == "__main__":
         print("Specify the number of parallel runs of netperf");
         num_combinations = int(input());
         for i in range(num_combinations):
-            print("Enter a space separated list of options for the netperf command");
+            print("Enter a space separated list of options for the netperf\
+                    command");
             print("Ensure that -H <server address> is specified at a minimum.");
             print("Do not specify the test specific output fields (-o) here.");
 
@@ -327,5 +351,6 @@ if __name__ == "__main__":
     print('output_fields: ',output_fields); # debug
 
     for i in np.arange(0,len(client_server_pairs)):
-        run_thread = Thread(target=start_netperf,args=(client_server_pairs[i],output_fields,));
+        run_thread = Thread(target=start_netperf,args=(client_server_pairs[i]\
+                ,output_fields,));
         run_thread.start();
