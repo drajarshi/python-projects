@@ -11,7 +11,8 @@
 					"pkt_size_tx_rx":[[1000,1000],[2000,2000]]
 					}
 				],
-				"duration":"10"
+				"duration":"10",
+				"inter_run_sleep":"2"
 			}
 		]
 	},

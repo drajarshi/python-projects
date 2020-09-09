@@ -21,7 +21,8 @@ config_kw_option_map = {
 "duration"  :       "-l",
 "pkt_size_tx_rx":   "-r",
 "test_type":        "-t",
-"num_copies":       "-z"
+"num_copies":       "-z",
+"inter_run_sleep":  "-y"
 }
 
 class netperf: # one object per server IP address
@@ -39,6 +40,7 @@ class netperf: # one object per server IP address
         self.packet_sizes = "";
         self.commands = [];
         self.command_strings = [];
+        self.inter_run_sleep = 2; # default sleep time b/w iterations
 
     def get_packet_sizes(self,packet_size_array):
         size_string_array = []
@@ -76,6 +78,8 @@ class netperf: # one object per server IP address
             elif (optionlist[i] == "-l"): # duration
                 self.loption = True;
                 self.duration = optionlist[i+1];
+            elif (optionlist[i] == "-y"): # sleep time between consecutive runs
+                self.inter_run_sleep = int(optionlist[i+1]);
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -218,6 +222,10 @@ class netperf: # one object per server IP address
                     break;
 
             outf.close();
+
+            if (i < len(self.packet_sizes)-1): # more packet sizes to run with.
+                print("sleeping for ",self.inter_run_sleep," seconds");
+                time.sleep(self.inter_run_sleep);
 
         resultf.close();
 
