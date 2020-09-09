@@ -65,7 +65,7 @@ class netperf: # one object per server IP address
                 self.toption = True;
                 self.type = optionlist[i+1];
             elif (optionlist[i] == "-r"): # packet sizes
-                self.roption = True;
+                self.t_roption = True;
                 if (isinstance(optionlist[i+1],list)):
                     self.packet_sizes = self.get_packet_sizes(optionlist[i+1]);
                 elif (isinstance(optionlist[i+1],str)):
