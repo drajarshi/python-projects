@@ -173,7 +173,7 @@ class netperf: # one object per server IP address
         if (self.toption == True):
             header += ",test_type";
         if (self.t_roption == True):
-            header += ",packet_size(tx:rx)";
+            header += ",packet_size_tx(bytes),packet_size_rx(bytes)";
         if (self.t_loption == True):
             header += ",duration(seconds)";
 
