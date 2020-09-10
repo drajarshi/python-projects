@@ -167,7 +167,7 @@ class netperf: # one object per server IP address in the config
             current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
             start_time = current_time;
 
-            output_filename = "netperf_" + str(random.randint(0,100)) + "_" \
+            output_filename = "netperf_" + str(random.randint(0,10000)) + "_" \
                 + str(self.source_ip) + "_to_" + \
                 str(self.server) + "_" + current_time + "_" + \
                 str(self.command_strings[i]) + ".csv";
@@ -209,7 +209,7 @@ class netperf: # one object per server IP address in the config
 
         current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
 
-        result_summary_file = "netperf_summary_" + str(random.randint(0,100))\
+        result_summary_file = "netperf_summary_" + str(random.randint(0,10000))\
                 + "_" + str(self.source_ip) + "_to_" + str(self.server) + "_" \
                 + current_time + ".csv";
 
