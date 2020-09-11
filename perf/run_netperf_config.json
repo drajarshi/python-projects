@@ -3,6 +3,8 @@
 	{
 		"server":"10.240.64.16",
 		"num_copies":"1",
+		"cpu_rate_local":"100",
+		"cpu_rate_remote":"100",
 		"run_configuration": [
 			{
 				"test_type":"TCP_RR",
@@ -19,6 +21,8 @@
 	{
 		"server":"10.240.64.16",
 		"num_copies":"1",
+		"cpu_rate_local":"100",
+		"cpu_rate_remote":"100",
 		"run_configuration": [
 			{
 				"test_type":"TCP_RR",

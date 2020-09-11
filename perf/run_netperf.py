@@ -22,7 +22,9 @@ config_kw_option_map = {
 "pkt_size_tx_rx":   "-r",
 "test_type":        "-t",
 "num_copies":       "-z",
-"inter_run_sleep":  "-y"
+"inter_run_sleep":  "-y",
+"cpu_rate_local":   "-c",
+"cpu_rate_remote":  "-C"
 }
 
 class netperf: # one object per server IP address in the config
@@ -33,8 +35,10 @@ class netperf: # one object per server IP address in the config
         self.netperf_command = "/usr/bin/netperf";
         self.Hoption = False;
         self.toption = False;
+        self.loption = False;
+        self.coption = False;
+        self.Coption = False;
         self.t_roption = False; # t_ is a test option
-        self.t_loption = False;
         self.s_zoption = False; # s_ is a (this) script specific option
         self.source_ip = None;
         self.packet_sizes = "";
@@ -42,6 +46,8 @@ class netperf: # one object per server IP address in the config
         self.command_strings = [];
         self.inter_run_sleep = 2; # default sleep time b/w iterations
         self.num_copies = 1; # default number of copies to run per configuration
+        self.cpu_rate_local = 0;
+        self.cpu_rate_remote = 0;
 
     def get_packet_sizes(self,packet_size_array):
         size_string_array = []
@@ -77,13 +83,19 @@ class netperf: # one object per server IP address in the config
                             string. Exiting.");
                     exit(-1);
             elif (optionlist[i] == "-l"): # duration
-                self.t_loption = True;
+                self.loption = True;
                 self.duration = optionlist[i+1];
             elif (optionlist[i] == "-y"): # sleep time between consecutive runs
                 self.inter_run_sleep = int(optionlist[i+1]);
             elif (optionlist[i] == "-z"):
                 self.s_zoption = True;
                 self.num_copies = int(optionlist[i+1]);
+            elif (optionlist[i] == "-c"):
+                self.coption = True;
+                self.cpu_rate_local = int(optionlist[i+1]);
+            elif (optionlist[i] == "-C"):
+                self.Coption = True;
+                self.cpu_rate_remote = int(optionlist[i+1]);
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -138,11 +150,17 @@ class netperf: # one object per server IP address in the config
                     cmd_string += "_";
                 cmd_string += "t" + str(self.type);
 
-            if (self.t_loption == True):
+            if (self.loption == True):
                 cmd += ["-l",str(self.duration)];
                 if (cmd_string != ""): # some option's already added
                     cmd_string += "_";
                 cmd_string += "l" + str(self.duration);
+
+            if (self.coption == True):
+                cmd += ["-c",str(self.cpu_rate_local)];
+
+            if (self.Coption == True):
+                cmd += ["-C",str(self.cpu_rate_remote)];
 
             cmd += ["--"];
 
@@ -188,7 +206,7 @@ class netperf: # one object per server IP address in the config
                 result_line += "," + self.type;
             if (self.t_roption == True):
                 result_line += "," + self.packet_sizes[i];
-            if (self.t_loption == True):
+            if (self.loption == True):
                 result_line += "," + self.duration;
 
             for line in outf.readlines():
@@ -220,7 +238,7 @@ class netperf: # one object per server IP address in the config
             header += ",test_type";
         if (self.t_roption == True):
             header += ",packet_size_tx(bytes),packet_size_rx(bytes)";
-        if (self.t_loption == True):
+        if (self.loption == True):
             header += ",duration(seconds)";
 
         for i in range(len(output_fields)):
