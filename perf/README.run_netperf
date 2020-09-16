@@ -1,0 +1,122 @@
+Using the run_netperf.py wrapper to invoke the netperf program
+==============================================================
+v0.1:
+In order to use the wrapper, please make sure netperf (v1/v2) is
+installed.
+
+run_netperf.py takes the following arguments supported by netperf
+global:
+-H <server ip address>
+-c <local cpu rate>
+-C <remote cpu rate>
+-l <run duration in seconds>
+-t TCP_RR
+Test specific:
+-r <tx packet size in bytes,rx packet size in bytes>
+-o mean_latency,transaction_rate,p90_latency
+
+The wrapper has been evaluated for the TCP_RR test alone.
+Additional wrapper specific options:
+-z <number of copies of netperf to start with the specified configuration>
+-y <inter run sleep time in seconds>
+The -y parameter defaults to 2 seconds. It is used specifically when there
+are multiple tx,rx sizes that need to be evaluated. Once the first size 
+combination has been completed, the wrapper sleeps for '-y' seconds and then
+starts a run with the next tx,rx size combination specified.
+
+The run_netperf wrapper can be invoked in 3 ways:
+1.
+$ python3 run_netperf.py -H 1.20.64.16 -z 2 -c 100 -C 100 -t TCP_RR -- \
+-r [[5,5]] -l 10 -y 2 -o mean_latency,transaction_rate,p90_latency
+
+This method directly specifies all the options in the command line.
+The output looks like this in <<>>:
+<<
+client_server_pairs:  [['-H', '1.20.64.16', '-z', '2', '-c', '100', '-C',
+ '100', '-t', 'TCP_RR', '--', '-r', '[[500,500]]', '-l', '10', '-y', '2']]
+output_fields:  ['mean_latency', 'transaction_rate', 'p90_latency']
+[5, 5]
+netperf call returned  0
+netperf call returned  0
+>>
+The two return values correspond to the 2 copies of netperf that completed
+corresponding to the option -z 2.
+Further, each copy generates a .csv result file named like this:
+netperf_91_1.20.64.15_to_1.20.64.16_16-09-2020_14:17:09_tTCP_RR_l10_r5_5.csv
+The name of the file can be used to identify the client and server, as well 
+as understand the run configuration.
+The csv file contains information similar to the following:
+MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0)............ 
+Mean Latency Microseconds,Transaction Rate Tran/s,90th Percentile Latency \
+Microseconds
+2009.37,60.26,2549.12
+
+Additionally, for every server IP address, a summary file is also generated
+which looks like this:
+start_time,end_time,test_type,packet_size_tx(bytes),packet_size_rx(bytes),\
+duration(seconds),mean_latency(microseconds),transaction_rate(trans/sec),\
+p90_latency(microseconds)
+16-09-2020_14:37:09,16-09-2020_14:37:19,TCP_RR,5,5,10,3001.70,90.67,2500.23
+16-09-2020_14:37:09,16-09-2020_14:37:19,TCP_RR,5,5,10,2009.37,60.26,2549.12
+
+Note that -r [[5,5]] specifies a single set of tx,rx sizes. To specify 
+multiple sizes, -r [[5,5],[6,6]] can be used. This implies 2 sets, the first
+being tx and rx sizes of 5 bytes and the second set being 6 bytes for both 
+tx and rx.
+2.
+$ python3 run_netperf.py run_netperf_config.json
+The json file specifies the configuration to run with, and may look like:
+{
+"test_configuration":[
+        {
+                "server":"1.20.64.16",
+                "num_copies":"1",
+                "cpu_rate_local":"100",
+                "cpu_rate_remote":"100",
+                "run_configuration": [
+                        {
+                                "test_type":"TCP_RR",
+                                "test_parameters": [
+                                        {
+                                        "pkt_size_tx_rx":[[5,5],[6,6]]
+                                        }
+                                ],
+                                "duration":"10",
+                                "inter_run_sleep":"2"
+                        }
+                ]
+        },
+],
+"output_fields":[
+        "mean_latency",
+        "transaction_rate",
+        "p90_latency"
+]
+}
+
+3. python3 run_netperf.py
+Specify the number of parallel runs of netperf
+1
+Enter a space separated list of options for the netperf command
+Ensure that -H <server address> is specified at a minimum.
+Do not specify the test specific output fields (-o) here.
+-H 1.20.64.16 -c 100 -C 100 -t TCP_RR -- -r [[5,5]] -l 40 -y 2
+Specify comma-separated fields to print in the run output:
+mean_latency/transaction_rate/p90_latency
+Specify None to indicate defaults
+None
+client_server_pairs:  [['-H', '1.20.64.16', '-c', '100', '-C', '100',
+ '-t', 'TCP_RR', '--', '-r', '[[500,500]]', '-l', '40', '-y', '2']]
+output_fields:  ['mean_latency', 'transaction_rate', 'p90_latency']
+[5, 5]
+netperf call returned  0
+
+Note that in method 3. all options are taken interactively. Also, with 
+methods 2 and 3, it is possible to specify multiple parallel runs and
+specify a different configuration for each of these parallel runs.
+In method 2, multiple parallel runs may be specified by multiple {}
+blocks within the 'test_configuration' section.
+
+Evaluation:
+Currently the wrapper has been evaluated using a Ubuntu 16.04 client and
+server.

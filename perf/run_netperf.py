@@ -340,9 +340,9 @@ if __name__ == "__main__":
     output_data = "";
     output_list = [];
 
-    if (len(sys.argv) == 2):
+    if (len(sys.argv) == 2): # configuration file specified as a parameter
         client_server_pairs,output_fields = get_config(sys.argv[1]);
-    else:
+    elif (len(sys.argv) == 1): # no options or parameter specified
         print("Specify the number of parallel runs of netperf");
         num_combinations = int(input());
         for i in range(num_combinations):
@@ -362,8 +362,34 @@ if __name__ == "__main__":
             output_fields = ["mean_latency","transaction_rate","p90_latency"];
         else:
             output_list = output_data.split(",");
+            if (len(output_list) == 1): # A comma separated list was not specified
+                print("A comma separated list of output fields should be\
+                        specified. Exiting");
+                exit(-1);
             for i in range(len(output_list)):
                 output_fields.append(output_list[i]);
+    else: # full list of options specified directly on command line
+        option_list = [];
+        output_field = False;
+
+        for i in range(len(sys.argv)):
+            if (i==0):
+                continue;
+            if ("-o" in sys.argv[i]):
+                output_field = True;
+            else:
+                if (output_field == False):
+                    option_list.append(sys.argv[i]);
+                else:
+                    output_list = sys.argv[i].split(",");
+                    if (len(output_list) == 1): # comma separated list missing
+                        print("A comma separated list of output fields should \
+                                be specified. Exiting");
+                        exit(-1);
+                    for i in range(len(output_list)):
+                        output_fields.append(output_list[i]);
+
+        client_server_pairs.append(option_list);
 
     print('client_server_pairs: ',client_server_pairs); # debug
     print('output_fields: ',output_fields); # debug
