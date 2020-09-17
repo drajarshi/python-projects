@@ -3,6 +3,9 @@ Using the run_netperf.py wrapper to invoke the netperf program
 v0.1:
 In order to use the wrapper, please make sure netperf (v1/v2) is
 installed.
+Also, ensure that the numpy package is installed. To install it,
+$ sudo apt-get install python3-pip
+$ sudo pip3 install numpy
 
 run_netperf.py takes the following arguments supported by netperf
 global:
