@@ -24,7 +24,8 @@ config_kw_option_map = {
 "num_copies":       "-z",
 "inter_run_sleep":  "-y",
 "cpu_rate_local":   "-c",
-"cpu_rate_remote":  "-C"
+"cpu_rate_remote":  "-C",
+"data_path_only":   "-N"
 }
 
 class netperf: # one object per server IP address in the config
@@ -32,12 +33,14 @@ class netperf: # one object per server IP address in the config
         self.server = None;
         self.type = None;
         self.duration = None;
-        self.netperf_command = "/usr/bin/netperf";
+        #self.netperf_command = "/usr/bin/netperf"; # 2.6.0
+        self.netperf_command = "/usr/local/bin/netperf"; # 2.7.0
         self.Hoption = False;
         self.toption = False;
         self.loption = False;
         self.coption = False;
         self.Coption = False;
+        self.Noption = False;
         self.t_roption = False; # t_ is a test option
         self.s_zoption = False; # s_ is a (this) script specific option
         self.source_ip = None;
@@ -96,6 +99,8 @@ class netperf: # one object per server IP address in the config
             elif (optionlist[i] == "-C"):
                 self.Coption = True;
                 self.cpu_rate_remote = int(optionlist[i+1]);
+            elif (optionlist[i] == "-N"):
+                self.Noption = True;
 
     def get_source_ip(self,ifname="ens3"):
         s = socket.socket(family=socket.AF_INET,type=socket.SOCK_DGRAM);
@@ -137,6 +142,12 @@ class netperf: # one object per server IP address in the config
             else: # should never get here
                 print("no server address specified. Can not continue.");
                 exit(-1);
+
+            if (self.Noption == True): # data path only
+                cmd += ["-N"];
+                if (cmd_string != ""): # some option's already added
+                    cmd_string += "_";
+                cmd_string += "N";
 
             if (self.toption == True):
                 cmd += ["-t",str(self.type)];

@@ -1,5 +1,43 @@
 Using the run_netperf.py wrapper to invoke the netperf program
 ==============================================================
+v0.2:
+In this version, the -N option of netperf has been added. As a
+result, a data-path-only test can also be done using the
+wrapper script.
+Ensure that the echo service is active on the server by following 
+the steps below:
+# sudo apt-get install xinetd
+
+# vi /etc/xinetd.conf/echo
+Change in:
+service echo
+{
+        disable         = no # this is yes by default. Set it to no
+        type            = INTERNAL
+        id              = echo-stream
+        socket_type     = stream
+        protocol        = tcp
+        user            = root
+        wait            = no
+}
+
+# sudo service xinetd restart
+Test echo as below:
+# nc localhost echo
+hola
+hola
+
+The echo server is running as part of the xinetd service.
+
+Once the echo service is verified to be running as above, invoke 
+run_netperf.py as below:
+
+python3 run_netperf.py -H 1.20.24.16 -N -l 2 -z 2 -t TCP_RR --\
+ -r [[1,1]] -o mean_latency,transaction_rate,p90_latency
+
+The output format remains unchanged and is similar to v0.1.
+
+
 v0.1:
 In order to use the wrapper, please make sure netperf (v1/v2) is
 installed.
