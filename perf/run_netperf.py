@@ -28,11 +28,14 @@ config_kw_option_map = {
 "data_path_only":   "-N"
 }
 
+supported_output_list = ["mean_latency","transaction_rate","p90_latency"];
+supported_output_list_display = "mean_latency/transaction_rate/p90_latency";
+
 class netperf: # one object per server IP address in the config
     def __init__(self,optionlist):
         self.server = None;
         self.type = None;
-        self.duration = None;
+        self.duration = "10"; # default run duration
         #self.netperf_command = "/usr/bin/netperf"; # 2.6.0
         self.netperf_command = "/usr/local/bin/netperf"; # 2.7.0
         self.Hoption = False;
@@ -131,6 +134,15 @@ class netperf: # one object per server IP address in the config
             output_fields_string += output_fields[i];
             if i < (len(output_fields)-1):
                     output_fields_string += ",";
+
+        if (len(self.packet_sizes)==0): # no packet size was specified
+            size_array = [];
+            size_array.append("1,1"); # set the default rx and tx sizes
+            self.packet_sizes = size_array;
+            self.t_roption = True; # set this to enable cmd creation
+
+        if (self.loption == False): # duration was not specified
+            self.loption = True; # use default value
 
         for i in range(len(self.packet_sizes)):
             cmd = [];
@@ -333,7 +345,7 @@ def get_config(input_file):
         client_server_pairs.append(options);
 
     if "output_fields" not in full_data: #set defaults
-        output_fields = ["mean_latency","transaction_rate","p90_latency"];
+        output_fields = supported_output_list;
     else:
         output_fields = full_data["output_fields"];
                             
@@ -366,19 +378,29 @@ if __name__ == "__main__":
             client_server_pairs.append(option_list);
 
         print("Specify comma-separated fields to print in the run output:");
-        print("mean_latency/transaction_rate/p90_latency");
+        print(supported_output_list_display);
         print("Specify None to indicate defaults");
         output_data = input();
         if (output_data == "None"):
-            output_fields = ["mean_latency","transaction_rate","p90_latency"];
+            output_fields = supported_output_list;
         else:
             output_list = output_data.split(",");
-            if (len(output_list) == 1): # A comma separated list was not specified
-                print("A comma separated list of output fields should be\
+            if (len(output_list) == 1):
+                if (" " in output_list[0]):#space separated list specified 
+                    print("A comma separated list of output fields should be\
                         specified. Exiting");
-                exit(-1);
+                    exit(-1);
             for i in range(len(output_list)):
+                if (output_list[i] not in supported_output_list):
+                    print(output_list[i]," not supported. Skipping..");
+                    continue;
                 output_fields.append(output_list[i]);
+
+            if (len(output_fields)==0):
+                print("none of the output fields specified is supported.");
+                print("setting defaults..");
+                output_fields = supported_output_list;
+
     else: # full list of options specified directly on command line
         option_list = [];
         output_field = False;
@@ -386,6 +408,10 @@ if __name__ == "__main__":
         for i in range(len(sys.argv)):
             if (i==0):
                 continue;
+
+            if ((i==len(sys.argv)-1) and (output_field == False)): # -o missing
+                output_fields = supported_output_list; # set defaults
+
             if ("-o" in sys.argv[i]):
                 output_field = True;
             else:
@@ -393,12 +419,23 @@ if __name__ == "__main__":
                     option_list.append(sys.argv[i]);
                 else:
                     output_list = sys.argv[i].split(",");
-                    if (len(output_list) == 1): # comma separated list missing
-                        print("A comma separated list of output fields should \
-                                be specified. Exiting");
-                        exit(-1);
+                    if (len(output_list) == 1):
+                        if (" " in output_list[0]):#space separated list 
+                            print("A comma separated list of output fields \
+                                    should be specified. Exiting");
+                            exit(-1);
+
                     for i in range(len(output_list)):
+                        if (output_list[i] not in supported_output_list):
+                            print(output_list[i]," not supported. Skipping..");
+                            continue;
                         output_fields.append(output_list[i]);
+
+                    if (len(output_fields)==0):
+                        print("none of the output fields specified is \
+                                supported.");
+                        print("setting defaults..");
+                        output_fields = supported_output_list;
 
         client_server_pairs.append(option_list);
 

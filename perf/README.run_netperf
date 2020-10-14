@@ -1,5 +1,16 @@
 Using the run_netperf.py wrapper to invoke the netperf program
 ==============================================================
+v0.21:
+1.While using the method of specifying all options directly on
+the command line during invocation (non interactive), this
+version allows skipping the -l (duration) and -r (packet size)
+options. If skipped, the defaults are assumed :10 seconds and 
+1,1 (tx_packet_size,rx_packet_size) respectively. 
+2. This version also allows specifying one or more output fields
+among those allowed, validates them ,skips the ones that are
+not supported, and picks the default list (if none of the speci-
+fied fields is correct).
+
 v0.2:
 In this version, the -N option of netperf has been added. As a
 result, a data-path-only test can also be done using the
