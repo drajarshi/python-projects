@@ -205,7 +205,7 @@ class netperf: # one object per server IP address in the config
 
     def run_command_core(self,resultf):
         for i in range(len(self.packet_sizes)):
-            current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+            current_time = time.strftime("%d-%m-%Y_%H-%M-%S");
             start_time = current_time;
 
             output_filename = "netperf_" + str(random.randint(0,10000)) + "_" \
@@ -248,7 +248,7 @@ class netperf: # one object per server IP address in the config
     def run_commands(self,output_fields):
         self.get_source_ip();
 
-        current_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+        current_time = time.strftime("%d-%m-%Y_%H-%M-%S");
 
         result_summary_file = "netperf_summary_" + str(random.randint(0,10000))\
                 + "_" + str(self.source_ip) + "_to_" + str(self.server) + "_" \
