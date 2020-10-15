@@ -50,9 +50,9 @@ def fetch_tps_and_latency(df,start_time=0,end_time=0):
 
     # Mean Transaction rate of all instances
     start_time = int(time.mktime(time.strptime(df["start_time"][0],\
-                "%d-%m-%Y_%H:%M:%S")));
+                "%d-%m-%Y_%H-%M-%S")));
     end_time = int(time.mktime(time.strptime(df["end_time"][len(df.index)-1],\
-                "%d-%m-%Y_%H:%M:%S")));
+                "%d-%m-%Y_%H-%M-%S")));
     total_duration = end_time - start_time;
 
     mean_transaction_rate = (df['transaction_rate(trans/sec)']*\
@@ -83,9 +83,9 @@ def group_running_instances_by_timestamp(df):
     # first get a map of timestamp to instance count
     for i in range(len(df["start_time"])):
         timeiter = int(time.mktime(time.strptime(df["start_time"][i],\
-                "%d-%m-%Y_%H:%M:%S")));
+                "%d-%m-%Y_%H-%M-%S")));
         endtime = int(time.mktime(time.strptime(df["end_time"][i],\
-                "%d-%m-%Y_%H:%M:%S")));
+                "%d-%m-%Y_%H-%M-%S")));
 
         while (timeiter <= endtime):
             if timeiter in map_ts_instance_count:
@@ -101,7 +101,7 @@ def group_running_instances_by_timestamp(df):
 
     for k in map_ts_instance_count.keys():
         k_str = datetime.datetime.fromtimestamp(k).\
-                strftime("%d-%m-%Y_%H:%M:%S");
+                strftime("%d-%m-%Y_%H-%M-%S");
         map_ts_instance_count2[k_str] = map_ts_instance_count[k];
 
     print(map_ts_instance_count2);
