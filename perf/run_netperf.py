@@ -216,7 +216,7 @@ class netperf: # one object per server IP address in the config
             outf = open(output_filename,"w");
 
             ret = call(self.commands[i],stdout=outf,stderr=outf);
-            end_time = time.strftime("%d-%m-%Y_%H:%M:%S");
+            end_time = time.strftime("%d-%m-%Y_%H-%M-%S");
             print("netperf call returned ", ret);
             outf.close();
 
