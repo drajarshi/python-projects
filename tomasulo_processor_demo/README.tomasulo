@@ -1,0 +1,86 @@
+Version: 0.11
+File: README.tomasulo
+Author: Rajarshi Das
+
+Overview:
+=========
+This file gives an overview of the script which leverages the Tomasulo
+algorithm and demonstrates its function with certain assumptions.
+
+Assumptions:
+============
+1. The Tomasulo algorithm has been implemented assuming the following:
+a. A single issue processor
+b. Reservation stations for ADD/SUB as well as MUL/DIV
+c. Load buffers as a holding area for LW/SW instructions.
+d. A fixed set of instructions that is currently hard coded in hex.
+e. Fully pipelined EX stages.
+f. 5-stage pipeline (Issue,Start_EX,EX_Complete,Writeback and Commit)
+g. The actual computation for the ALU instructions is done in the start_ex
+stage and kept ready.
+
+Contents:
+1. This README.tomasulo file.
+2. tomasulo.py python3 script.
+3. Sample output file tomasulo_sample_output.out.
+
+Steps to run:
+=============
+1. Ensure that python3 is installed where the script has to be executed.
+$ python3 --version
+
+The above command should return a valid version.
+
+If python3 is not installed, do the following to install (assuming a Ubuntu OS):
+$ sudo apt-get install python3-pip
+
+An equivalent step can be applied in order to install python3 on other OS.
+
+Once python3 is installed,
+2. Run the script as:
+$ python3 tomasulo.py > tomasulo_detailed_flow.out
+
+The above command redirects the output of the script into a file for future reference.
+
+3. vi tomasulo_detailed_flow.out
+In order to read the output of the script.
+
+Notes on the output:
+====================
+1. The output at each cycle follows a marker <<<<<< Cycle <cycle number> >>>>>>
+e.g. the content following <<<<<< Cycle 1 >>>>>> upto <<<<<< Cycle 2 >>>>>>
+refers to what happens in cycle 1.
+
+2. The contents of the load buffer are seen under 'LB:' and those for the Reservation
+Station under 'ADD/SUB' or 'MUL/DIV' as applicable.
+
+3. In each cycle,
+If an instruction is issued, the LB, and RS are printed after the issue is done.
+If an instruction starts execution (gets to start_ex), and,
+it is a load, the LB is printed after start_ex is done.
+if it is a alu, the RS is printed after start_ex is done.
+If an instruction completes execution the ROB is printed after execution complete.
+If an instruction completes writeback, the LB, and ADD/SUB and MUL/DIV RS are 
+printed after the writeback completes.
+If an instruction finishes commit, the ARF,RAT and ROB are printed after the 
+commit.
+
+4. The instruction cycle table is printed for each of the cases listed above under 3.
+
+5. If there is no information after 'ADD/SUB:' it means that the ADD/SUB RS do not 
+have any active entries. Ditto for 'MUL/DIV'.
+
+6. If a specific instruction is not yet ready to start_ex, a message of the form 
+'<instruction type> is not yet ready ..' is seen, e.g.
+'DIV is not yet ready ..'.
+
+Fixes:
+======
+In the Start_EX stage, a return from the instruction loop happens if an instruction
+is not ready. This prevents future instructions from getting issued in the same
+cycle. This is now fixed.
+
+References:
+===========
+Tomasulo Algorithm: https://ieeexplore.ieee.org/document/5392028
+“Computer architecture- Quantitative approach”, Henessey and Patterson - Ch 3.4,3.5

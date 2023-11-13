@@ -1,0 +1,892 @@
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 0 	 0 	 0 	 0 	 0
+DIV R2,R3,R4 	 0 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 0 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+
+
+<<<<<< Cycle  1  >>>>>>
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 0 	 0 	 0 	 0
+DIV R2,R3,R4 	 0 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 0 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+LB:
+Instruction	Busy	Destination_Tag	Address_Offset	Source_Register
+LW R3,0(R2)	Y	ROB1	16	R2
+				
+ADD/SUB:
+MUL/DIV:
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		
+ROB2						
+ROB3						
+ROB4						
+ROB5						
+ROB6						
+ROB7						
+
+
+<<<<<< Cycle  2  >>>>>>
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 0 	 0 	 0
+DIV R2,R3,R4 	 0 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 0 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 0 	 0 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 0 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2		ROB1						5
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		
+ROB2		DIV		R2		
+ROB3						
+ROB4						
+ROB5						
+ROB6						
+ROB7						
+
+
+<<<<<< Cycle  3  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		
+ROB2		DIV		R2		
+ROB3						
+ROB4						
+ROB5						
+ROB6						
+ROB7						
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 0 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 0 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+DIV  not yet ready..
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 0 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2		ROB1						5
+MUL R1,R5,R6	Y	ROB3						3		4
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4						
+ROB5						
+ROB6						
+ROB7						
+
+
+<<<<<< Cycle  4  >>>>>>
+LB:
+ADD/SUB:
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2						45		5
+MUL R1,R5,R6	Y	ROB3						3		4
+ADD/SUB:
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2						45		5
+MUL R1,R5,R6	Y	ROB3						3		4
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 0 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2						45		5
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 0 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 0
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R3,R7,R8	Y	ROB4						1		2
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+DIV R2,R3,R4	Y	ROB2						45		5
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		
+ROB5						
+ROB6						
+ROB7						
+
+
+<<<<<< Cycle  5  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+12	16	45	5	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB3	ROB2	ROB4	--	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		
+ROB5						
+ROB6						
+ROB7						
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 0 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 0 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 0 	 0 	 0
+MUL R1,R1,R3 	 0 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 0 	 0 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5		ROB3		ROB4				
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		
+ROB5		MUL		R1		
+ROB6						
+ROB7						
+
+
+<<<<<< Cycle  6  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		
+ROB5		MUL		R1		
+ROB6						
+ROB7						
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 0 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 0 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+MUL  not yet ready..
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 0 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5		ROB3		ROB4				
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		
+ROB5		MUL		R1		
+ROB6		SUB		R4		
+ROB7						
+
+
+<<<<<< Cycle  7  >>>>>>
+LB:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5		ROB3						3
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5		ROB3						3
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 0 	 0 	 0 	 0 	 0
+MUL  not yet ready..
+SUB  not yet ready..
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 0 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5		ROB3						3
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		3
+ROB5		MUL		R1		
+ROB6		SUB		R4		
+ROB7		ADD		R1		
+
+
+<<<<<< Cycle  8  >>>>>>
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  9  >>>>>>
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  10  >>>>>>
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  11  >>>>>>
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  12  >>>>>>
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  13  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		
+ROB4		ADD		R3		3
+ROB5		MUL		R1		
+ROB6		SUB		R4		
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 0 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+MUL  not yet ready..
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  14  >>>>>>
+LB:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5						12		3
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6		ROB5						3
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+MUL/DIV:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+MUL R1,R1,R3	Y	ROB5						12		3
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 0 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  15  >>>>>>
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 0 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  16  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  17  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  18  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  19  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  20  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  21  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  22  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  23  >>>>>>
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  24  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		
+ROB6		SUB		R4		
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 0 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+SUB  not yet ready..
+ADD  not yet ready..
+
+
+<<<<<< Cycle  25  >>>>>>
+LB:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6						36		3
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+MUL/DIV:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+SUB R4,R1,R5	Y	ROB6						36		3
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 0 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD  not yet ready..
+
+
+<<<<<< Cycle  26  >>>>>>
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R1,R4,R2	Y	ROB7		ROB6		ROB2				
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 0 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+
+
+<<<<<< Cycle  27  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 0 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD  not yet ready..
+
+
+<<<<<< Cycle  28  >>>>>>
+LB:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R1,R4,R2	Y	ROB7				ROB2		33		
+MUL/DIV:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R1,R4,R2	Y	ROB7				ROB2		33		
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 0 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD  not yet ready..
+
+
+<<<<<< Cycle  29  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  30  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  31  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  32  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  33  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  34  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  35  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  36  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  37  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  38  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  39  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  40  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  41  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  42  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  43  >>>>>>
+ADD  not yet ready..
+
+
+<<<<<< Cycle  44  >>>>>>
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 0 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD  not yet ready..
+
+
+<<<<<< Cycle  45  >>>>>>
+LB:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R1,R4,R2	Y	ROB7						33		9
+MUL/DIV:
+ADD/SUB:
+Instruction	Busy	Destination_Tag	Source1_Tag	Source2_Tag	Value_Source1	Value_Source2
+ADD R1,R4,R2	Y	ROB7						33		9
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 0
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+
+
+<<<<<< Cycle  46  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+12	9	45	5	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB7	--	ROB4	ROB6	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 0 	 0 	 0 	 0
+ADD/SUB:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 0
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 0 	 0 	 0
+
+
+<<<<<< Cycle  47  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+12	9	45	5	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB7	--	ROB4	ROB6	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 0 	 0 	 0
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 0
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 47 	 0 	 0
+
+
+<<<<<< Cycle  48  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+12	9	3	5	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB7	--	--	ROB6	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 48
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 47 	 0 	 0
+LB:
+ADD/SUB:
+MUL/DIV:
+ADD/SUB:
+MUL/DIV:
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 48
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 0
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 47 	 48 	 0
+
+
+<<<<<< Cycle  49  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+36	9	3	5	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB7	--	--	ROB6	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		42
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 48
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 49
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 0
+ADD R1,R4,R2 	 7 	 46 	 47 	 48 	 0
+
+
+<<<<<< Cycle  50  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+36	9	3	33	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+ROB7	--	--	--	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		42
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 48
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 49
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 50
+ADD R1,R4,R2 	 7 	 46 	 47 	 48 	 0
+
+
+<<<<<< Cycle  51  >>>>>>
+ARF:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+42	9	3	33	3	4	1	2	2	3	
+RAT:
+R1	R2	R3	R4	R5	R6	R7	R8	R9	R10	
+--	--	--	--	--	--	--	--	--	--	
+ROB:
+ROB_Name	Instruction	Destination	Value
+ROB1		LW		R3		45
+ROB2		DIV		R2		9
+ROB3		MUL		R1		12
+ROB4		ADD		R3		3
+ROB5		MUL		R1		36
+ROB6		SUB		R4		33
+ROB7		ADD		R1		42
+Instruction Cycle Table:
+Instruction Issue Start_EX EX_Complete Writeback Commit   
+LW R3,0(R2) 	 1 	 2 	 3 	 4 	 5
+DIV R2,R3,R4 	 2 	 5 	 44 	 45 	 46
+MUL R1,R5,R6 	 3 	 4 	 13 	 14 	 47
+ADD R3,R7,R8 	 4 	 5 	 6 	 7 	 48
+MUL R1,R1,R3 	 5 	 15 	 24 	 25 	 49
+SUB R4,R1,R5 	 6 	 26 	 27 	 28 	 50
+ADD R1,R4,R2 	 7 	 46 	 47 	 48 	 51
